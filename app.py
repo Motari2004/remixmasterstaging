@@ -1,26 +1,20 @@
 """
-Staging Viewer — read-only dashboard over the Neon queue.
+Staging Viewer — read-only dashboard.
 
-Runs two ways from the same file:
-  • Locally:  python app.py           (reads config.json for the DB URL)
-  • Vercel:   api/index.py imports `app` from this module
-              (reads NEON_DATABASE_URL from env vars)
-
-Never writes. Never publishes. Only reads.
+Local:  python app.py                 (reads config.json)
+Vercel: api/index.py imports `app`    (reads NEON_DATABASE_URL env var)
 """
 import os
 import sys
 import json
-import threading
 
 from flask import Flask, jsonify, send_from_directory
 
-# Make lib/ importable regardless of how this file is loaded.
 _ROOT = os.path.dirname(os.path.abspath(__file__))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from lib import db
+import db
 
 
 BASE_DIR      = _ROOT
@@ -29,7 +23,6 @@ CONFIG_FILE   = os.path.join(BASE_DIR, "config.json")
 
 
 def _load_config():
-    """Local dev only — Vercel uses env vars."""
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f) or {}
@@ -41,32 +34,24 @@ def _load_config():
 
 
 def _resolve_db_url():
-    """
-    Prefer the env var (Vercel). Fall back to config.json (local dev).
-    Sets db.DB_URL so the shared connection helper picks it up.
-    """
+    """Env var wins; config.json is the local fallback."""
     url = os.environ.get("NEON_DATABASE_URL", "").strip()
     if url:
         print("🔗 Using NEON_DATABASE_URL from environment")
         return url
-
     cfg = _load_config()
     url = (cfg.get("neon_database_url") or "").strip()
     if url:
         print("🔗 Using neon_database_url from config.json")
         return url
-
     print("❌ No Neon URL — set NEON_DATABASE_URL or add it to config.json")
     return ""
 
 
-# Wire the resolved URL into lib/db before anything queries it.
+# Wire the resolved URL into db BEFORE any query runs.
 db.DB_URL = _resolve_db_url()
 
 
-# ------------------------------------------------------------------
-# Flask app
-# ------------------------------------------------------------------
 app = Flask(__name__, template_folder="templates")
 
 
@@ -99,9 +84,6 @@ def api_log():
     return jsonify(success=True, rows=db.q_log())
 
 
-# ------------------------------------------------------------------
-# Local entry point
-# ------------------------------------------------------------------
 if __name__ == "__main__":
     cfg = _load_config()
     port = int(cfg.get("port", 5050))
@@ -109,7 +91,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("👁️  Staging Viewer (read-only)")
     print("=" * 60)
-    print(f"🗄️  Neon URL:  {db.DB_URL[:50]}…")
+    print(f"🗄️  Neon URL:  {db.DB_URL[:60]}…")
     print(f"🌐 Port:      {port}")
     print(f"🌍 Open:      http://localhost:{port}")
     print("=" * 60)
