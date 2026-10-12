@@ -1,12 +1,9 @@
 """
-Neon helpers shared by the viewer (app.py) and the drain
-(api/cron/drain.py).
+Neon helpers. Used by both the viewer (app.py) and the drain (cron.py).
 
-DB_URL is resolved at import time in this order:
-  1. NEON_DATABASE_URL env var
-  2. whatever app.py overwrites it with (config.json fallback)
-
-The drain always runs on Vercel, so it relies on the env var alone.
+DB_URL resolution:
+  • Local:  app.py reads config.json and overrides db.DB_URL at import
+  • Vercel: NEON_DATABASE_URL env var (read at import time)
 """
 import os
 import threading
@@ -27,7 +24,7 @@ _conn = None
 def get_conn():
     global _conn
     if not DB_URL:
-        raise RuntimeError("NEON_DATABASE_URL env var is not set")
+        raise RuntimeError("NEON_DATABASE_URL is not set")
     with _lock:
         if _conn is None or _conn.closed:
             _conn = psycopg.connect(DB_URL, autocommit=True, row_factory=dict_row)
@@ -35,47 +32,41 @@ def get_conn():
 
 
 # ------------------------------------------------------------------
+# Niche configs
+# ------------------------------------------------------------------
+def get_buffer_niches(include_key=False):
+    """
+    Return {niche: cfg} for every publisher='buffer' row in niche_configs.
+    If include_key=True, cfg['buffer_api_key'] is populated (drain only).
+    """
+    cols = "niche, label, platform, buffer_channel_id"
+    if include_key:
+        cols += ", buffer_api_key"
+
+    with get_conn().cursor() as cur:
+        cur.execute(f"""
+            SELECT {cols}
+              FROM niche_configs
+             WHERE publisher = 'buffer'
+        """)
+        rows = cur.fetchall()
+
+    out = {}
+    for r in rows:
+        cfg = {
+            "label":             r["label"] or r["niche"],
+            "platform":          (r["platform"] or "youtube").lower(),
+            "buffer_channel_id": r["buffer_channel_id"] or "",
+        }
+        if include_key:
+            cfg["buffer_api_key"] = r["buffer_api_key"] or ""
+        out[r["niche"]] = cfg
+    return out
+
+
+# ------------------------------------------------------------------
 # Viewer queries
 # ------------------------------------------------------------------
-def get_buffer_niches():
-    with get_conn().cursor() as cur:
-        cur.execute("""
-            SELECT niche, label, platform, buffer_channel_id
-              FROM niche_configs
-             WHERE publisher = 'buffer'
-        """)
-        rows = cur.fetchall()
-    return {
-        r["niche"]: {
-            "label":             r["label"] or r["niche"],
-            "platform":          (r["platform"] or "youtube").lower(),
-            "buffer_channel_id": r["buffer_channel_id"] or "",
-        }
-        for r in rows
-    }
-
-
-def get_buffer_niches_full():
-    """Like get_buffer_niches() but includes the API key — used by the drain."""
-    with get_conn().cursor() as cur:
-        cur.execute("""
-            SELECT niche, label, platform,
-                   buffer_api_key, buffer_channel_id
-              FROM niche_configs
-             WHERE publisher = 'buffer'
-        """)
-        rows = cur.fetchall()
-    return {
-        r["niche"]: {
-            "label":             r["label"] or r["niche"],
-            "platform":          (r["platform"] or "youtube").lower(),
-            "buffer_api_key":    r["buffer_api_key"] or "",
-            "buffer_channel_id": r["buffer_channel_id"] or "",
-        }
-        for r in rows
-    }
-
-
 def q_summary():
     niches = get_buffer_niches()
 
@@ -216,6 +207,4 @@ def set_niche_mode(niche, mode):
 
 def mark_last_drain(niche):
     with get_conn().cursor() as cur:
-        cur.execute("""
-            UPDATE niche_state SET last_drain = NOW() WHERE niche = %s
-        """, (niche,))
+        cur.execute("UPDATE niche_state SET last_drain = NOW() WHERE niche = %s", (niche,))

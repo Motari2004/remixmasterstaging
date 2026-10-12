@@ -1,6 +1,5 @@
 """
-Buffer POST logic. Config comes in as a dict (from Neon) instead of
-settings.json.
+Buffer POST logic. Config comes in as a dict (from Neon niche_configs).
 """
 import json
 import requests

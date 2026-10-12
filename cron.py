@@ -1,13 +1,16 @@
 """
-Vercel serverless drain: pull staged posts from Neon, push to Buffer.
+The drain. Called by an external cron every N minutes.
 
-GET /api/cron/drain              → run the drain
-GET /api/cron/drain/ping         → health check, no auth
+One pass per invocation:
+  • For every Buffer niche in niche_configs:
+      - Pop the oldest pending post
+      - Try to send it to Buffer
+      - If Buffer says "limit reached", requeue and move to the next niche
+      - If Buffer accepts, mark sent and try the next post
+      - Stop when the niche's queue is empty, or MAX_SENDS_PER_RUN hit
+  • After a niche is drained to zero, flip it back to 'direct' mode
 
-Env vars:
-  NEON_DATABASE_URL    required
-  MAX_SENDS_PER_RUN    optional, default 10
-  MAX_RUNTIME_SECONDS  optional, default 50
+No loop. No scheduling. Buffer's own queue is the source of truth.
 """
 import os
 import sys
@@ -16,14 +19,14 @@ import time
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
-# Make lib/ importable when Vercel runs this file from api/cron/
+# Make the project root importable when Vercel runs this file
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
+_ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from lib import db
-from lib.buffer import publish, LimitReached
+import db
+from buffer import publish, LimitReached
 
 
 MAX_SENDS_PER_RUN   = int(os.environ.get("MAX_SENDS_PER_RUN", "10"))
@@ -70,15 +73,15 @@ def _drain_niche(niche, cfg, deadline):
             result["failed"] += 1
             print(f"  ❌ {niche} id={post['id']} failed: {e}")
 
+    # ---- Self-heal: if the queue is empty and no problems, go back to direct ----
     try:
         if result["requeued"] == 0 and result["failed"] == 0:
-            pending = db.count_pending(niche)
-            if pending == 0:
+            if db.count_pending(niche) == 0:
                 db.set_niche_mode(niche, "direct")
                 result["flipped_to_direct"] = True
                 print(f"  🔄 {niche} flipped back to direct")
     except Exception as e:
-        print(f"  ⚠️  {niche} flip-back check failed: {e}")
+        print(f"  ⚠️  {niche} flip-back failed: {e}")
 
     try:
         db.mark_last_drain(niche)
@@ -100,16 +103,12 @@ def run_drain():
     }
 
     try:
-        niches = db.get_buffer_niches_full()
+        niches = db.get_buffer_niches(include_key=True)
     except Exception as e:
-        return {
-            "ok": False,
-            "error": f"Could not load niche configs: {e}",
-            "started_at": started,
-        }
+        return {"ok": False, "error": f"Could not load niche configs: {e}", "started_at": started}
 
     if not niches:
-        summary["note"] = "No buffer niches found in niche_configs"
+        summary["note"] = "No buffer niches in niche_configs"
         summary["duration_ms"] = int((time.time() - started) * 1000)
         return summary
 
@@ -133,12 +132,15 @@ def run_drain():
     return summary
 
 
+# ------------------------------------------------------------------
+# Vercel handler
+# ------------------------------------------------------------------
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
 
         if parsed.path.endswith("/ping"):
-            self._reply(200, {"ok": True, "service": "staging-drain"})
+            self._reply(200, {"ok": True, "service": "cron"})
             return
 
         try:
@@ -159,4 +161,4 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        print(f"[drain] {fmt % args}")
+        print(f"[cron] {fmt % args}")
