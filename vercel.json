@@ -2,8 +2,5 @@
   "functions": {
     "api/index.py": { "maxDuration": 30 },
     "api/cron.py":  { "maxDuration": 60 }
-  },
-  "rewrites": [
-    { "source": "/api/cron", "destination": "/api/cron" }
-  ]
+  }
 }
