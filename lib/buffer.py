@@ -1,8 +1,6 @@
 """
-Buffer POST logic for the Vercel drain.
-
-Lifted from the local drain.py; config comes in as a dict (from Neon)
-instead of being read from settings.json.
+Buffer POST logic. Config comes in as a dict (from Neon) instead of
+settings.json.
 """
 import json
 import requests
@@ -20,7 +18,6 @@ def _utf16_len(s):
 
 
 def _build_payload(channel_id, video_url, title, caption, platform):
-    """Return (text, metadata_dict) for a given platform."""
     platform = (platform or "youtube").lower()
 
     if platform == "instagram":
@@ -62,7 +59,6 @@ def _build_payload(channel_id, video_url, title, caption, platform):
 
 
 def publish(niche, video_url, title, caption, cfg):
-    """POST to Buffer. Raises LimitReached or RuntimeError."""
     api_key = (cfg.get("buffer_api_key") or "").strip()
     if not api_key:
         raise RuntimeError(f"No buffer_api_key for niche '{niche}'")

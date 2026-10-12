@@ -1,16 +1,21 @@
 """
-Neon helpers for the Vercel drain function.
+Neon helpers shared by the viewer (app.py) and the drain
+(api/cron/drain.py).
+
+DB_URL is resolved at import time in this order:
+  1. NEON_DATABASE_URL env var
+  2. whatever app.py overwrites it with (config.json fallback)
+
+The drain always runs on Vercel, so it relies on the env var alone.
 """
 import os
-import sys
 import threading
 
 try:
     import psycopg
     from psycopg.rows import dict_row
 except ImportError:
-    print("❌ psycopg not installed. requirements.txt should have psycopg[binary]")
-    raise
+    raise RuntimeError("psycopg not installed — add psycopg[binary] to requirements.txt")
 
 
 DB_URL = os.environ.get("NEON_DATABASE_URL", "")
@@ -29,8 +34,29 @@ def get_conn():
         return _conn
 
 
+# ------------------------------------------------------------------
+# Viewer queries
+# ------------------------------------------------------------------
 def get_buffer_niches():
-    """Return {niche: cfg_dict} for every publisher='buffer' row."""
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            SELECT niche, label, platform, buffer_channel_id
+              FROM niche_configs
+             WHERE publisher = 'buffer'
+        """)
+        rows = cur.fetchall()
+    return {
+        r["niche"]: {
+            "label":             r["label"] or r["niche"],
+            "platform":          (r["platform"] or "youtube").lower(),
+            "buffer_channel_id": r["buffer_channel_id"] or "",
+        }
+        for r in rows
+    }
+
+
+def get_buffer_niches_full():
+    """Like get_buffer_niches() but includes the API key — used by the drain."""
     with get_conn().cursor() as cur:
         cur.execute("""
             SELECT niche, label, platform,
@@ -39,17 +65,95 @@ def get_buffer_niches():
              WHERE publisher = 'buffer'
         """)
         rows = cur.fetchall()
-    out = {}
-    for r in rows:
-        out[r["niche"]] = {
+    return {
+        r["niche"]: {
             "label":             r["label"] or r["niche"],
             "platform":          (r["platform"] or "youtube").lower(),
             "buffer_api_key":    r["buffer_api_key"] or "",
             "buffer_channel_id": r["buffer_channel_id"] or "",
         }
-    return out
+        for r in rows
+    }
 
 
+def q_summary():
+    niches = get_buffer_niches()
+
+    with get_conn().cursor() as cur:
+        cur.execute("SELECT niche, mode, last_drain FROM niche_state")
+        states = {r["niche"]: r for r in cur.fetchall()}
+
+    rows = []
+    for key, cfg in niches.items():
+        with get_conn().cursor() as cur:
+            cur.execute("""
+                SELECT COUNT(*) AS n FROM staged_posts
+                 WHERE niche=%s AND status IN ('pending','sending')
+            """, (key,))
+            pending = cur.fetchone()["n"]
+
+            cur.execute("""
+                SELECT COUNT(*) AS n FROM staged_posts
+                 WHERE niche=%s AND status='sent'
+                   AND sent_at >= CURRENT_DATE
+            """, (key,))
+            sent_today = cur.fetchone()["n"]
+
+        rows.append({
+            "key":        key,
+            "label":      cfg.get("label", key),
+            "platform":   (cfg.get("platform") or "youtube").lower(),
+            "mode":       states.get(key, {}).get("mode", "direct"),
+            "last_drain": str(states.get(key, {}).get("last_drain") or ""),
+            "pending":    pending,
+            "sent_today": sent_today,
+        })
+
+    rows.sort(key=lambda r: (r["mode"] != "staging", r["label"].lower()))
+    return rows
+
+
+def q_queue(niche):
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            SELECT id, video_url, title, caption, status, attempts,
+                   queued_at, sent_at, buffer_post_id, error
+              FROM staged_posts WHERE niche=%s
+             ORDER BY CASE status
+                        WHEN 'pending' THEN 0
+                        WHEN 'sending' THEN 1
+                        WHEN 'failed'  THEN 2
+                        WHEN 'sent'    THEN 3
+                        ELSE 4
+                      END, queued_at DESC LIMIT 500
+        """, (niche,))
+        items = cur.fetchall()
+
+        cur.execute("SELECT mode FROM niche_state WHERE niche=%s", (niche,))
+        r = cur.fetchone()
+        mode = r["mode"] if r else "direct"
+    return mode, items
+
+
+def q_post(post_id):
+    with get_conn().cursor() as cur:
+        cur.execute("SELECT * FROM staged_posts WHERE id=%s", (post_id,))
+        return cur.fetchone()
+
+
+def q_log():
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            SELECT id, niche, title, sent_at, buffer_post_id
+              FROM staged_posts WHERE status='sent'
+             ORDER BY sent_at DESC LIMIT 200
+        """)
+        return cur.fetchall()
+
+
+# ------------------------------------------------------------------
+# Drain queries
+# ------------------------------------------------------------------
 def pop_oldest(niche):
     with get_conn().cursor() as cur:
         cur.execute("""

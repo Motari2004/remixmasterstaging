@@ -1,15 +1,11 @@
 """
 Vercel serverless drain: pull staged posts from Neon, push to Buffer.
 
-Triggered by an external cron (cron-job.org) at a fixed interval.
-
-GET /api/cron/drain?secret=XXX
-  → drains every Buffer niche found in niche_configs
-  → returns JSON summary
+GET /api/cron/drain              → run the drain
+GET /api/cron/drain/ping         → health check, no auth
 
 Env vars:
   NEON_DATABASE_URL    required
-  DRAIN_SECRET         required (matches ?secret=)
   MAX_SENDS_PER_RUN    optional, default 10
   MAX_RUNTIME_SECONDS  optional, default 50
 """
@@ -18,11 +14,11 @@ import sys
 import json
 import time
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 
-# Make `lib/` importable — Vercel runs this file from api/cron/
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.abspath(os.path.join(_THIS_DIR, "..", ".."))
+# Make lib/ importable when Vercel runs this file from api/cron/
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
@@ -32,11 +28,9 @@ from lib.buffer import publish, LimitReached
 
 MAX_SENDS_PER_RUN   = int(os.environ.get("MAX_SENDS_PER_RUN", "10"))
 MAX_RUNTIME_SECONDS = int(os.environ.get("MAX_RUNTIME_SECONDS", "50"))
-DRAIN_SECRET        = os.environ.get("DRAIN_SECRET", "")
 
 
 def _drain_niche(niche, cfg, deadline):
-    """Drain one niche. Returns dict with counts."""
     result = {"sent": 0, "requeued": 0, "failed": 0, "flipped_to_direct": False}
 
     while time.time() < deadline:
@@ -76,7 +70,6 @@ def _drain_niche(niche, cfg, deadline):
             result["failed"] += 1
             print(f"  ❌ {niche} id={post['id']} failed: {e}")
 
-    # ---- Self-heal: flip back to direct if the queue is empty ----
     try:
         if result["requeued"] == 0 and result["failed"] == 0:
             pending = db.count_pending(niche)
@@ -107,7 +100,7 @@ def run_drain():
     }
 
     try:
-        niches = db.get_buffer_niches()
+        niches = db.get_buffer_niches_full()
     except Exception as e:
         return {
             "ok": False,
@@ -143,21 +136,11 @@ def run_drain():
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
-        qs = parse_qs(parsed.query)
 
-        # ---- Auth ----
-        if DRAIN_SECRET:
-            provided = (qs.get("secret") or [""])[0]
-            if provided != DRAIN_SECRET:
-                self._reply(401, {"ok": False, "error": "unauthorized"})
-                return
-
-        # ---- Health check (no drain, no auth needed for HEAD) ----
         if parsed.path.endswith("/ping"):
             self._reply(200, {"ok": True, "service": "staging-drain"})
             return
 
-        # ---- Run the drain ----
         try:
             result = run_drain()
             self._reply(200 if result.get("ok") else 500, result)
@@ -176,5 +159,4 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        # Vercel captures stdout; suppress default BaseHTTPRequestHandler noise
         print(f"[drain] {fmt % args}")
