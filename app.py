@@ -1,17 +1,11 @@
 """
 Staging Viewer — read-only dashboard over the Neon queue.
 
-This app does NOT publish to Buffer. It does NOT enqueue posts.
-It only reads:
-  - niche_state (which niches are direct vs staging)
-  - staged_posts (the queue contents)
-  - recent sends
+Reads niche configs from the `niche_configs` table in Neon (populated
+by Remix Master on startup and settings save). Falls back to
+settings.json if `niche_configs` is empty.
 
-Publishing is handled by:
-  - Remix Master (writes to Neon when Buffer is full)
-  - drain.py (cron job that pushes staged rows to Buffer)
-
-The whole file is optional. If it's down, the pipeline still works.
+Does NOT publish. Does NOT enqueue. Only reads.
 """
 import os
 import sys
@@ -50,6 +44,7 @@ RM_SETTINGS = CONFIG.get("remixmaster_settings",
 
 
 def _load_rm_settings():
+    """Legacy fallback — used only if niche_configs is empty."""
     try:
         with open(RM_SETTINGS, "r", encoding="utf-8") as f:
             return json.load(f) or {}
@@ -59,6 +54,36 @@ def _load_rm_settings():
 
 
 def _buffer_niches():
+    """
+    Prefer niche_configs from Neon. Fall back to settings.json only if
+    the table is empty (transition period or Remix Master hasn't run yet).
+    Returns {niche: cfg_dict}.
+    """
+    # ---- Primary: Neon ----
+    try:
+        with conn().cursor() as cur:
+            cur.execute("""
+                SELECT niche, label, platform,
+                       buffer_api_key, buffer_channel_id
+                  FROM niche_configs
+                 WHERE publisher = 'buffer'
+            """)
+            rows = cur.fetchall()
+        if rows:
+            return {
+                r["niche"]: {
+                    "label":             r["label"] or r["niche"],
+                    "platform":          (r["platform"] or "youtube").lower(),
+                    "buffer_api_key":    r["buffer_api_key"] or "",
+                    "buffer_channel_id": r["buffer_channel_id"] or "",
+                }
+                for r in rows
+            }
+    except Exception as e:
+        print(f"⚠️  Could not read niche_configs from Neon ({e}); "
+              f"falling back to settings.json")
+
+    # ---- Fallback: settings.json ----
     s = _load_rm_settings()
     niches = s.get("NICHES", {})
     if not isinstance(niches, dict):
@@ -107,6 +132,18 @@ def init_schema():
                 mode         TEXT NOT NULL DEFAULT 'direct',
                 last_drain   TIMESTAMPTZ,
                 updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        # New — synced from Remix Master on startup + settings save.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS niche_configs (
+                niche              TEXT PRIMARY KEY,
+                label              TEXT,
+                publisher          TEXT,
+                platform           TEXT,
+                buffer_api_key     TEXT,
+                buffer_channel_id  TEXT,
+                updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
 
@@ -221,7 +258,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("👁️  Staging Viewer (read-only)")
     print("=" * 60)
-    print(f"🔗 Remix settings:  {RM_SETTINGS}")
+    print(f"🔗 Remix settings:  {RM_SETTINGS} (legacy fallback)")
     print(f"🗄️  Neon URL:        {DB_URL[:50]}…")
     print(f"🌐 Port:            {PORT}")
     try:
