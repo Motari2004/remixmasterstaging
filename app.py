@@ -1,11 +1,15 @@
 """
 Staging Viewer — read-only dashboard over the Neon queue.
 
-Reads niche configs from the `niche_configs` table in Neon (populated
-by Remix Master on startup and settings save). Falls back to
-settings.json if `niche_configs` is empty.
+Reads:
+  - niche_configs in Neon  (preferred, synced by Remix Master)
+  - settings.json locally  (fallback when niche_configs is empty)
 
-Does NOT publish. Does NOT enqueue. Only reads.
+Never writes. Never publishes. Never touches Buffer.
+
+Publishing is handled by:
+  - Remix Master (writes to Neon when Buffer is full)
+  - The Vercel drain function (cron) — pushes staged rows to Buffer
 """
 import os
 import sys
@@ -36,62 +40,30 @@ def _load_config():
         return {}
 
 
-CONFIG      = _load_config()
-DB_URL      = CONFIG.get("neon_database_url", "")
-PORT        = int(CONFIG.get("port", 5050))
-RM_SETTINGS = CONFIG.get("remixmaster_settings",
-                         r"C:\Users\PC\Desktop\remixmaster\settings.json")
+CONFIG = _load_config()
+DB_URL = CONFIG.get("neon_database_url", "")
+PORT   = int(CONFIG.get("port", 5050))
+
+# Resolve RM_SETTINGS relative to BASE_DIR unless it's an absolute path.
+# This makes the same config work locally and on a remote host.
+_rm_setting = CONFIG.get("remixmaster_settings", "settings.json")
+if not os.path.isabs(_rm_setting):
+    RM_SETTINGS = os.path.join(BASE_DIR, _rm_setting)
+else:
+    RM_SETTINGS = _rm_setting
 
 
 def _load_rm_settings():
-    """Legacy fallback — used only if niche_configs is empty."""
+    """Read the local bundled settings.json (secrets already stripped)."""
     try:
         with open(RM_SETTINGS, "r", encoding="utf-8") as f:
             return json.load(f) or {}
-    except Exception as e:
-        print(f"⚠️  remixmaster settings: {e}")
+    except FileNotFoundError:
+        print(f"⚠️  Bundled settings.json not found at: {RM_SETTINGS}")
         return {}
-
-
-def _buffer_niches():
-    """
-    Prefer niche_configs from Neon. Fall back to settings.json only if
-    the table is empty (transition period or Remix Master hasn't run yet).
-    Returns {niche: cfg_dict}.
-    """
-    # ---- Primary: Neon ----
-    try:
-        with conn().cursor() as cur:
-            cur.execute("""
-                SELECT niche, label, platform,
-                       buffer_api_key, buffer_channel_id
-                  FROM niche_configs
-                 WHERE publisher = 'buffer'
-            """)
-            rows = cur.fetchall()
-        if rows:
-            return {
-                r["niche"]: {
-                    "label":             r["label"] or r["niche"],
-                    "platform":          (r["platform"] or "youtube").lower(),
-                    "buffer_api_key":    r["buffer_api_key"] or "",
-                    "buffer_channel_id": r["buffer_channel_id"] or "",
-                }
-                for r in rows
-            }
     except Exception as e:
-        print(f"⚠️  Could not read niche_configs from Neon ({e}); "
-              f"falling back to settings.json")
-
-    # ---- Fallback: settings.json ----
-    s = _load_rm_settings()
-    niches = s.get("NICHES", {})
-    if not isinstance(niches, dict):
+        print(f"⚠️  Could not read {RM_SETTINGS}: {e}")
         return {}
-    return {
-        k: v for k, v in niches.items()
-        if isinstance(v, dict) and (v.get("publisher") or "").lower() == "buffer"
-    }
 
 
 # ------------------------------------------------------------------
@@ -134,7 +106,6 @@ def init_schema():
                 updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
-        # New — synced from Remix Master on startup + settings save.
         cur.execute("""
             CREATE TABLE IF NOT EXISTS niche_configs (
                 niche              TEXT PRIMARY KEY,
@@ -148,15 +119,67 @@ def init_schema():
         """)
 
 
+# ------------------------------------------------------------------
+# Niche list resolution
+# ------------------------------------------------------------------
+def _buffer_niches():
+    """
+    Return {niche: cfg} for every Buffer niche we know about.
+
+    Order of preference:
+      1. Neon niche_configs table  (populated by Remix Master sync)
+      2. Local settings.json       (bundled copy, secrets stripped)
+    """
+    # ---- 1. Neon ----
+    try:
+        with conn().cursor() as cur:
+            cur.execute("""
+                SELECT niche, label, platform,
+                       buffer_channel_id
+                  FROM niche_configs
+                 WHERE publisher = 'buffer'
+            """)
+            rows = cur.fetchall()
+        if rows:
+            out = {
+                r["niche"]: {
+                    "label":             r["label"] or r["niche"],
+                    "platform":          (r["platform"] or "youtube").lower(),
+                    "buffer_channel_id": r["buffer_channel_id"] or "",
+                }
+                for r in rows
+            }
+            print(f"📚 Loaded {len(out)} Buffer niche(s) from Neon")
+            return out
+    except Exception as e:
+        print(f"⚠️  Could not read niche_configs from Neon ({e})")
+
+    # ---- 2. Local settings.json ----
+    s = _load_rm_settings()
+    niches = s.get("NICHES", {})
+    if not isinstance(niches, dict):
+        print(f"⚠️  No NICHES in {RM_SETTINGS}")
+        return {}
+
+    buffer_map = {
+        k: v for k, v in niches.items()
+        if isinstance(v, dict) and (v.get("publisher") or "").lower() == "buffer"
+    }
+    print(f"📚 Loaded {len(buffer_map)} Buffer niche(s) from {RM_SETTINGS}")
+    return buffer_map
+
+
+# ------------------------------------------------------------------
+# Queries
+# ------------------------------------------------------------------
 def q_summary():
     niches = _buffer_niches()
     with conn().cursor() as cur:
         cur.execute("SELECT niche, mode, last_drain FROM niche_state")
         states = {r["niche"]: r for r in cur.fetchall()}
+
     rows = []
     for key, cfg in niches.items():
-        pending = 0
-        sent_today = 0
         with conn().cursor() as cur:
             cur.execute("""
                 SELECT COUNT(*) AS n FROM staged_posts
@@ -169,14 +192,15 @@ def q_summary():
                    AND sent_at >= CURRENT_DATE
             """, (key,))
             sent_today = cur.fetchone()["n"]
+
         rows.append({
-            "key": key,
-            "label": cfg.get("label", key),
-            "platform": (cfg.get("platform") or "youtube").lower(),
-            "mode": states.get(key, {}).get("mode", "direct"),
-            "last_drain": str(states.get(key, {}).get("last_drain") or ""),
-            "pending": pending,
-            "sent_today": sent_today,
+            "key":         key,
+            "label":       cfg.get("label", key),
+            "platform":    (cfg.get("platform") or "youtube").lower(),
+            "mode":        states.get(key, {}).get("mode", "direct"),
+            "last_drain":  str(states.get(key, {}).get("last_drain") or ""),
+            "pending":     pending,
+            "sent_today":  sent_today,
         })
     rows.sort(key=lambda r: (r["mode"] != "staging", r["label"].lower()))
     return rows
@@ -258,8 +282,8 @@ if __name__ == "__main__":
     print("=" * 60)
     print("👁️  Staging Viewer (read-only)")
     print("=" * 60)
-    print(f"🔗 Remix settings:  {RM_SETTINGS} (legacy fallback)")
     print(f"🗄️  Neon URL:        {DB_URL[:50]}…")
+    print(f"📄 Settings source: {RM_SETTINGS}")
     print(f"🌐 Port:            {PORT}")
     try:
         init_schema()
