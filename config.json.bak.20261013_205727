@@ -1,0 +1,5 @@
+{
+  "neon_database_url": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  "port": 5050,
+  "remixmaster_settings": "settings.json"
+}

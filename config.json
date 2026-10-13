@@ -1,5 +1,94 @@
 {
   "neon_database_url": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
   "port": 5050,
-  "remixmaster_settings": "settings.json"
+  "zernio_niches": {
+    "scorpion": {
+      "label": "Scorpion",
+      "zernio_api_key": "sk_c72fb80b0270ad015d1b2d611d049d8006c2fd98b13359dc848f65368cb15dee",
+      "zernio_account_id": "6ac5c9007948441767a277e0",
+      "zernio_profile_id": "6a721a368e3c263d8f95a0c3",
+      "platform": "youtube",
+      "channel_link": ""
+    },
+    "minecraft": {
+      "label": "Minecraft Parkour",
+      "zernio_api_key": "sk_c72fb80b0270ad015d1b2d611d049d8006c2fd98b13359dc848f65368cb15dee",
+      "zernio_account_id": "6ac6a43d14926599f475c9db",
+      "zernio_profile_id": "6a8dba36da848f4749071a98",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@MinecraftStudioPro-y7t"
+    },
+    "scorpiotech": {
+      "label": "ScorpioTech (coding)",
+      "zernio_api_key": "sk_49f55b881dc9e27d059776cc74ee0f375d4cabdcf0f93beb9edce365327d5a61",
+      "zernio_account_id": "6ac77cff12b7be6c438a6923",
+      "zernio_profile_id": "6ac77cd4f4ed07ff21d6a98f",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/channel/UCWUe-R3OBeFuDNd_NuGU_wg"
+    },
+    "curiosityunlocked": {
+      "label": "Curiosity Unlocked",
+      "zernio_api_key": "sk_b954b7258a3d8786b3a276103572d17a1a441c5731680e14d8fafaee7d04c2d2",
+      "zernio_account_id": "6ac8b5958174ea92980b36e2",
+      "zernio_profile_id": "6ac8b56eef58275f67d5c596",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@curiosityunlocked-g8k"
+    },
+    "mindbodybalance": {
+      "label": "Mind Body Balance",
+      "zernio_api_key": "sk_4761bc0523006f92583e98a4614a02fb6472f3b71e87e1f9e887f2c33b23ef37",
+      "zernio_account_id": "6ac8efad43ca385f97fbe7a5",
+      "zernio_profile_id": "6ac8ef9911f7cedc21362883",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@mindbodybalance-j2s"
+    },
+    "motivatormindset": {
+      "label": "MotivatorMindset",
+      "zernio_api_key": "sk_8188952330afaa93c4ca426754d40537d15ed1425e5ad992c3ee8f1ef2fa8af4",
+      "zernio_account_id": "6ac90063d8a0c781dfaffe48",
+      "zernio_profile_id": "6ac90051040ebbc5bbe5c67b",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@motivatormindset-j9o"
+    },
+    "coreiqanimations": {
+      "label": "CoreIQ Animations",
+      "zernio_api_key": "sk_8188952330afaa93c4ca426754d40537d15ed1425e5ad992c3ee8f1ef2fa8af4",
+      "zernio_account_id": "6ac905ad24de3ca6853a9e62",
+      "zernio_profile_id": "6ac9059bd32d4ea54377e9c1",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@coreiq003"
+    },
+    "aitools": {
+      "label": "AI Tools",
+      "zernio_api_key": "sk_4761bc0523006f92583e98a4614a02fb6472f3b71e87e1f9e887f2c33b23ef37",
+      "zernio_account_id": "6ac9fd1fe956bfada366918a",
+      "zernio_profile_id": "6ac9fd0c24e4023e350c5c67",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@aitoolseagle-q3f"
+    },
+    "generalplug": {
+      "label": "General Plug",
+      "zernio_api_key": "sk_b954b7258a3d8786b3a276103572d17a1a441c5731680e14d8fafaee7d04c2d2",
+      "zernio_account_id": "6ac9fd8a5535bc43c84041b3",
+      "zernio_profile_id": "6ac9fd79dfefa5ede70fc9de",
+      "platform": "youtube",
+      "channel_link": "https://www.youtube.com/@generalplug-d7y"
+    },
+    "dailyfunnydose": {
+      "label": "DailyFunny Dose",
+      "zernio_api_key": "sk_e3eb7e6627935245df6bba63c77405061abe66d67eecd945dbab84e5bdadb81f",
+      "zernio_account_id": "6a8a938977555aae018f027e",
+      "zernio_profile_id": "6a8a93577e708b36c246dc40",
+      "platform": "instagram",
+      "channel_link": "https://instagram.com/dailyfunnydose4"
+    },
+    "fitnessworkout": {
+      "label": "FitnessWorkout",
+      "zernio_api_key": "sk_e3eb7e6627935245df6bba63c77405061abe66d67eecd945dbab84e5bdadb81f",
+      "zernio_account_id": "6a8a9e8177555aae0190a4c6",
+      "zernio_profile_id": "6a8a9e402a0e4553009f43f4",
+      "platform": "instagram",
+      "channel_link": "https://instagram.com/fitnessworkout010"
+    }
+  }
 }

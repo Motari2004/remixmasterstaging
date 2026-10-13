@@ -1,94 +1,188 @@
 """
-Staging Service — combined viewer + drain.
+Staging Viewer — read-only dashboard.
 
-Two responsibilities, one file:
-  • Viewer  — read-only dashboard over the Neon queue
-  • Drain   — callable endpoint that pushes pending rows to Buffer
+Two panels:
+  - Buffer niches (from Neon queue)
+  - Zernio niches (live from Zernio's API, cached + warmed)
 
-Endpoints:
-  GET /                        viewer dashboard
-  GET /api/summary             viewer data (14 Buffer niches)
-  GET /api/queue/<niche>       pending items for a niche
-  GET /api/post/<id>           one staged post
-  GET /api/log                 recent sends
-  GET /api/cron                run the drain (external cron hits this)
-  GET /api/cron/ping           drain health check
-
-Local:  python app.py            (reads config.json for DB URL)
-Vercel: vercel --prod           (reads NEON_DATABASE_URL env var)
-
-Deploy: both modes work from this same file.
+Serves a single-page UI at /. Does NOT publish or write to Buffer.
 """
 import os
 import sys
 import json
-import time
 import threading
-from urllib.parse import urlparse
 
 from flask import Flask, request, jsonify, send_from_directory
 
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    print("❌ psycopg not installed. Run: pip install \"psycopg[binary]\"")
+    sys.exit(1)
 
-# ------------------------------------------------------------------
-# Path setup — make sibling modules importable
-# ------------------------------------------------------------------
-_ROOT = os.path.dirname(os.path.abspath(__file__))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-
-import db
-from buffer import publish, LimitReached
+import zernio_client
 
 
-# ------------------------------------------------------------------
-# Config
-# ------------------------------------------------------------------
-TEMPLATES_DIR = os.path.join(_ROOT, "templates")
-CONFIG_FILE   = os.path.join(_ROOT, "config.json")
-
-MAX_SENDS_PER_RUN   = int(os.environ.get("MAX_SENDS_PER_RUN", "10"))
-MAX_RUNTIME_SECONDS = int(os.environ.get("MAX_RUNTIME_SECONDS", "50"))
+BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE   = os.path.join(BASE_DIR, "config.json")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 
 def _load_config():
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f) or {}
-    except FileNotFoundError:
-        return {}
     except Exception as e:
-        print(f"⚠️  config.json: {e}")
+        print(f"❌ config.json: {e}")
         return {}
 
 
-def _resolve_db_url():
-    """Env var wins; config.json is the local fallback."""
-    url = os.environ.get("NEON_DATABASE_URL", "").strip()
-    if url:
-        print("🔗 Using NEON_DATABASE_URL from environment")
-        return url
-    cfg = _load_config()
-    url = (cfg.get("neon_database_url") or "").strip()
-    if url:
-        print("🔗 Using neon_database_url from config.json")
-        return url
-    print("❌ No Neon URL — set NEON_DATABASE_URL or add it to config.json")
-    return ""
+CONFIG  = _load_config()
+DB_URL  = CONFIG.get("neon_database_url", "")
+PORT    = int(CONFIG.get("port", 5050))
+
+RM_SETTINGS = CONFIG.get("remixmaster_settings",
+                         r"C:\Users\PC\Desktop\remixmaster\settings.json")
 
 
-# Wire the resolved URL into the shared db module.
-db.DB_URL = _resolve_db_url()
+def _load_rm_settings():
+    try:
+        with open(RM_SETTINGS, "r", encoding="utf-8") as f:
+            return json.load(f) or {}
+    except Exception as e:
+        print(f"⚠️  remixmaster settings: {e}")
+        return {}
 
 
-# =========================================================
-# Flask app
-# =========================================================
+def _buffer_niches():
+    s = _load_rm_settings()
+    niches = s.get("NICHES", {})
+    if not isinstance(niches, dict):
+        return {}
+    return {
+        k: v for k, v in niches.items()
+        if isinstance(v, dict) and (v.get("publisher") or "").lower() == "buffer"
+    }
+
+
+# ------------------------------------------------------------------
+# DB
+# ------------------------------------------------------------------
+_lock = threading.Lock()
+_conn = None
+
+
+def conn():
+    global _conn
+    with _lock:
+        if _conn is None or _conn.closed:
+            _conn = psycopg.connect(DB_URL, autocommit=True, row_factory=dict_row)
+        return _conn
+
+
+def init_schema():
+    with conn().cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS staged_posts (
+                id              BIGSERIAL PRIMARY KEY,
+                niche           TEXT NOT NULL,
+                video_url       TEXT NOT NULL,
+                title           TEXT NOT NULL,
+                caption         TEXT NOT NULL,
+                status          TEXT NOT NULL DEFAULT 'pending',
+                error           TEXT,
+                queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                sent_at         TIMESTAMPTZ,
+                buffer_post_id  TEXT,
+                attempts        INT NOT NULL DEFAULT 0
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS niche_state (
+                niche        TEXT PRIMARY KEY,
+                mode         TEXT NOT NULL DEFAULT 'direct',
+                last_drain   TIMESTAMPTZ,
+                updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+
+
+def q_summary():
+    niches = _buffer_niches()
+    with conn().cursor() as cur:
+        cur.execute("SELECT niche, mode, last_drain FROM niche_state")
+        states = {r["niche"]: r for r in cur.fetchall()}
+    rows = []
+    for key, cfg in niches.items():
+        with conn().cursor() as cur:
+            cur.execute("""
+                SELECT COUNT(*) AS n FROM staged_posts
+                 WHERE niche=%s AND status IN ('pending','sending')
+            """, (key,))
+            pending = cur.fetchone()["n"]
+            cur.execute("""
+                SELECT COUNT(*) AS n FROM staged_posts
+                 WHERE niche=%s AND status='sent'
+                   AND sent_at >= CURRENT_DATE
+            """, (key,))
+            sent_today = cur.fetchone()["n"]
+        rows.append({
+            "key": key,
+            "label": cfg.get("label", key),
+            "platform": (cfg.get("platform") or "youtube").lower(),
+            "mode": states.get(key, {}).get("mode", "direct"),
+            "last_drain": str(states.get(key, {}).get("last_drain") or ""),
+            "pending": pending,
+            "sent_today": sent_today,
+        })
+    rows.sort(key=lambda r: (r["mode"] != "staging", r["label"].lower()))
+    return rows
+
+
+def q_queue(niche):
+    with conn().cursor() as cur:
+        cur.execute("""
+            SELECT id, video_url, title, caption, status, attempts,
+                   queued_at, sent_at, buffer_post_id, error
+              FROM staged_posts WHERE niche=%s
+             ORDER BY CASE status
+                        WHEN 'pending' THEN 0
+                        WHEN 'sending' THEN 1
+                        WHEN 'failed'  THEN 2
+                        WHEN 'sent'    THEN 3
+                        ELSE 4
+                      END, queued_at DESC LIMIT 500
+        """, (niche,))
+        items = cur.fetchall()
+        cur.execute("SELECT mode FROM niche_state WHERE niche=%s", (niche,))
+        r = cur.fetchone()
+        mode = r["mode"] if r else "direct"
+    return mode, items
+
+
+def q_post(pid):
+    with conn().cursor() as cur:
+        cur.execute("SELECT * FROM staged_posts WHERE id=%s", (pid,))
+        return cur.fetchone()
+
+
+def q_log():
+    with conn().cursor() as cur:
+        cur.execute("""
+            SELECT id, niche, title, sent_at, buffer_post_id
+              FROM staged_posts WHERE status='sent'
+             ORDER BY sent_at DESC LIMIT 200
+        """)
+        return cur.fetchall()
+
+
+# ------------------------------------------------------------------
+# Flask
+# ------------------------------------------------------------------
 app = Flask(__name__, template_folder="templates")
 
 
-# ------------------------------------------------------------------
-# Viewer routes
-# ------------------------------------------------------------------
 @app.route("/")
 def index():
     return send_from_directory(TEMPLATES_DIR, "index.html")
@@ -96,18 +190,18 @@ def index():
 
 @app.route("/api/summary")
 def api_summary():
-    return jsonify(success=True, rows=db.q_summary())
+    return jsonify(success=True, rows=q_summary())
 
 
 @app.route("/api/queue/<niche>")
 def api_queue(niche):
-    mode, items = db.q_queue(niche)
+    mode, items = q_queue(niche)
     return jsonify(success=True, niche=niche, mode=mode, items=items)
 
 
 @app.route("/api/post/<int:pid>")
 def api_post(pid):
-    it = db.q_post(pid)
+    it = q_post(pid)
     if not it:
         return jsonify(success=False, error="not found"), 404
     return jsonify(success=True, item=it)
@@ -115,140 +209,84 @@ def api_post(pid):
 
 @app.route("/api/log")
 def api_log():
-    return jsonify(success=True, rows=db.q_log())
+    return jsonify(success=True, rows=q_log())
 
 
-# =========================================================
-# Drain — the whole thing lives here now
-# =========================================================
-def _drain_niche(niche, cfg, deadline):
-    result = {"sent": 0, "requeued": 0, "failed": 0, "flipped_to_direct": False}
+# ---- Zernio panel (cached + parallel) ----
+@app.route("/api/zernio/niches")
+def api_zernio_niches():
+    """
+    Return one summary per Zernio niche.
 
-    while time.time() < deadline:
-        if result["sent"] >= MAX_SENDS_PER_RUN:
-            break
-
-        post = db.pop_oldest(niche)
-        if not post:
-            break
-
-        try:
-            resp = publish(
-                niche=niche,
-                video_url=post["video_url"],
-                title=post["title"],
-                caption=post["caption"],
-                cfg=cfg,
-            )
-            buf_id = ""
-            try:
-                buf_id = (((resp.get("data") or {}).get("createPost") or {})
-                          .get("post") or {}).get("id", "")
-            except Exception:
-                pass
-            db.mark_sent(post["id"], buf_id)
-            result["sent"] += 1
-            print(f"  ✅ {niche} id={post['id']} buf={buf_id}")
-
-        except LimitReached:
-            db.requeue(post["id"])
-            result["requeued"] += 1
-            print(f"  ⏸️  {niche} limit reached — requeued id={post['id']}")
-            break
-
-        except Exception as e:
-            db.mark_failed(post["id"], str(e))
-            result["failed"] += 1
-            print(f"  ❌ {niche} id={post['id']} failed: {e}")
-
-    # Self-heal: if the queue is empty and nothing went wrong, go back to direct.
+    ?force=1 forces a fresh fetch (synchronous, slower).
+    Otherwise: cached values return instantly; stale ones refresh in background.
+    """
+    force = request.args.get("force") in ("1", "true", "yes")
     try:
-        if result["requeued"] == 0 and result["failed"] == 0:
-            if db.count_pending(niche) == 0:
-                db.set_niche_mode(niche, "direct")
-                result["flipped_to_direct"] = True
-                print(f"  🔄 {niche} flipped back to direct")
+        summaries = zernio_client.all_summaries(force=force)
     except Exception as e:
-        print(f"  ⚠️  {niche} flip-back failed: {e}")
+        return jsonify(success=False, error=str(e)), 500
 
+    rows = sorted(summaries.values(), key=lambda r: r.get("label", "").lower())
+    return jsonify(success=True, rows=rows, cached=not force)
+
+
+@app.route("/api/zernio/posts/<niche>")
+def api_zernio_posts(niche):
+    niches = zernio_client.list_niches()
+    cfg = niches.get(niche)
+    if not cfg:
+        return jsonify(success=False, error="unknown niche"), 404
+    page   = int(request.args.get("page", 1))
+    limit  = int(request.args.get("limit", 50))
+    force  = request.args.get("force") in ("1", "true", "yes")
     try:
-        db.mark_last_drain(niche)
-    except Exception:
-        pass
-
-    return result
-
-
-def run_drain():
-    started = time.time()
-    deadline = started + MAX_RUNTIME_SECONDS
-
-    summary = {
-        "ok": True,
-        "started_at": started,
-        "niches": {},
-        "totals": {"sent": 0, "requeued": 0, "failed": 0, "flipped": 0},
-    }
-
-    try:
-        niches = db.get_buffer_niches(include_key=True)
+        result = zernio_client.scheduled_posts_for_niche(
+            niche, cfg, page=page, limit=limit, force=force
+        )
+        return jsonify(success=True, niche=niche, **result)
     except Exception as e:
-        return {"ok": False, "error": f"Could not load niche configs: {e}",
-                "started_at": started}
-
-    if not niches:
-        summary["note"] = "No buffer niches in niche_configs"
-        summary["duration_ms"] = int((time.time() - started) * 1000)
-        return summary
-
-    for niche, cfg in niches.items():
-        if time.time() >= deadline:
-            summary["note"] = f"Time cap hit after {len(summary['niches'])} niches"
-            break
-        try:
-            r = _drain_niche(niche, cfg, deadline)
-            summary["niches"][niche] = r
-            summary["totals"]["sent"]     += r["sent"]
-            summary["totals"]["requeued"] += r["requeued"]
-            summary["totals"]["failed"]   += r["failed"]
-            if r["flipped_to_direct"]:
-                summary["totals"]["flipped"] += 1
-        except Exception as e:
-            summary["niches"][niche] = {"error": str(e)}
-            print(f"  ❌ Niche {niche} crashed: {e}")
-
-    summary["duration_ms"] = int((time.time() - started) * 1000)
-    return summary
+        return jsonify(success=False, error=str(e)), 500
 
 
-@app.route("/api/cron")
-def api_cron():
+@app.route("/api/zernio/refresh", methods=["POST"])
+def api_zernio_refresh():
+    """
+    Force-refresh the entire Zernio summary in the background.
+    Returns immediately; caller should re-fetch /niches in ~1-2s.
+    """
     try:
-        result = run_drain()
-        return jsonify(result), (200 if result.get("ok") else 500)
+        def _run():
+            zernio_client.all_summaries(force=True)
+        threading.Thread(target=_run, daemon=True).start()
+        return jsonify(success=True, message="refresh started")
     except Exception as e:
-        return jsonify(ok=False, error=f"drain crashed: {e}"), 500
+        return jsonify(success=False, error=str(e)), 500
 
 
-@app.route("/api/cron/ping")
-def api_cron_ping():
-    return jsonify(ok=True, service="staging-service")
+@app.route("/api/zernio/stats")
+def api_zernio_stats():
+    return jsonify(success=True, **zernio_client.cache_stats())
 
 
-# =========================================================
-# Local entry point
-# =========================================================
 if __name__ == "__main__":
-    cfg = _load_config()
-    port = int(cfg.get("port", 5050))
+    print("=" * 60)
+    print("👁️  Staging Viewer")
+    print("=" * 60)
+    print(f"🗄️  Neon URL:        {DB_URL[:50]}…")
+    print(f"🌐 Port:            {PORT}")
+    try:
+        init_schema()
+        print("✅ Schema ready")
+    except Exception as e:
+        print(f"❌ Schema init failed: {e}")
+    zernio_n = len(zernio_client.list_niches())
+    print(f"🎬 Zernio niches:   {zernio_n}  (from config.json)")
+    print(f"🅱️  Buffer niches:   {len(_buffer_niches())}  (from remixmaster)")
 
-    print("=" * 60)
-    print("👁️  Staging Service (viewer + drain)")
-    print("=" * 60)
-    print(f"🗄️  Neon URL:  {db.DB_URL[:60]}…")
-    print(f"🌐 Port:      {port}")
-    print(f"🌍 Open:      http://localhost:{port}")
-    print(f"🚰 Drain:     http://localhost:{port}/api/cron")
-    print("=" * 60)
+    # Warm the cache in the background
+    zernio_client.start_warmer()
 
-    app.run(host="0.0.0.0", port=port, debug=False)
+    print(f"🌍 Open:            http://localhost:{PORT}")
+    print("=" * 60)
+    app.run(host="0.0.0.0", port=PORT, debug=False, threaded=True)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📦 Staging Service</title>
+  <title>📦 Staging + Zernio</title>
   <style>
     :root {
       --bg: #0f1115; --panel: #171a21; --panel2: #1e222b;
@@ -18,18 +18,22 @@
       color: var(--text); min-height: 100vh; padding: 24px;
     }
     .app { max-width: 1200px; margin: 0 auto; }
-    h1 { font-size: 1.6rem; margin-bottom: 4px;
-         background: linear-gradient(90deg, var(--accent), var(--accent2));
-         -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h1 {
+      font-size: 1.6rem; margin-bottom: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
     .sub { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
     a { color: var(--accent2); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
-    /* nav tabs */
-    .nav { display: flex; gap: 4px; margin-bottom: 16px;
-           background: var(--panel2); padding: 4px; border-radius: 10px;
-           border: 1px solid var(--border); width: fit-content; }
+    .nav {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--panel2); padding: 4px; border-radius: 10px;
+      border: 1px solid var(--border); width: fit-content;
+      align-items: center;
+    }
     .nav button {
       padding: 7px 14px; border-radius: 7px; background: transparent;
       color: var(--muted); border: none; cursor: pointer;
@@ -41,7 +45,6 @@
       color: white;
     }
 
-    /* cards */
     .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
     .stat { background: var(--panel); padding: 12px 18px; border-radius: 10px;
             border: 1px solid var(--border); flex: 1; min-width: 140px; }
@@ -50,7 +53,6 @@
     .stat span { color: var(--muted); font-size: 0.75rem;
                  text-transform: uppercase; letter-spacing: 1px; }
 
-    /* table */
     table { width: 100%; border-collapse: collapse; background: var(--panel);
             border-radius: 10px; overflow: hidden; }
     th, td { padding: 10px 14px; text-align: left;
@@ -58,10 +60,9 @@
     th { background: var(--panel2); color: var(--muted);
          font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
     tr:hover td { background: var(--panel2); }
-    .title-cell { max-width: 360px; overflow: hidden;
+    .title-cell { max-width: 380px; overflow: hidden;
                   text-overflow: ellipsis; white-space: nowrap; }
 
-    /* pills */
     .pill { display: inline-block; padding: 3px 10px; border-radius: 999px;
             font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.5px; }
@@ -71,12 +72,8 @@
     .pill.tiktok  { background: rgba(0,212,255,0.15);  color: #67e8f9; }
     .pill.youtube { background: rgba(239,68,68,0.15);  color: #fca5a5; }
     .pill.facebook{ background: rgba(59,130,246,0.15); color: #93c5fd; }
-    .status-pending { color: #fcd34d; }
-    .status-sending { color: var(--accent2); }
-    .status-sent    { color: var(--ok); }
-    .status-failed  { color: #fca5a5; }
+    .pill.zernio  { background: rgba(139,92,246,0.15); color: #c4b5fd; }
 
-    /* buttons */
     button {
       cursor: pointer; background: var(--panel2); color: var(--text);
       border: 1px solid var(--border); border-radius: 6px;
@@ -94,7 +91,6 @@
              background: var(--panel); border-radius: 10px;
              border: 1px dashed var(--border); }
 
-    /* sections */
     .view { display: none; }
     .view.active { display: block; }
 
@@ -102,69 +98,156 @@
     .section-title small { color: var(--muted); font-size: 0.8rem;
                            font-weight: normal; margin-left: 8px; }
 
-    .back-link { margin-bottom: 14px; display: inline-block; font-size: 0.85rem; }
-
-    .post-detail {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 10px; padding: 20px;
-    }
-    .post-detail dt { color: var(--muted); font-size: 0.72rem;
-                      text-transform: uppercase; letter-spacing: 1px;
-                      margin-top: 14px; }
-    .post-detail dd { font-size: 0.88rem; margin-top: 4px;
-                      white-space: pre-wrap; word-break: break-word; }
-    .post-detail dd a { word-break: break-all; }
-
     .toast {
       position: fixed; bottom: 24px; right: 24px;
       background: var(--panel2); border: 1px solid var(--accent);
       color: var(--text); padding: 12px 20px; border-radius: 10px;
       font-size: 0.85rem; z-index: 999; max-width: 400px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-      animation: slidein 0.3s ease;
     }
-    @keyframes slidein { from { transform: translateY(20px); opacity: 0; }
-                         to   { transform: translateY(0);    opacity: 1; } }
+    .toast.err { border-color: var(--danger); }
+
+    .slot-list { background: #0f1115; border: 1px solid var(--border);
+                 border-radius: 8px; padding: 10px;
+                 font-family: monospace; font-size: 0.78rem;
+                 display: grid; grid-template-columns: repeat(3, 1fr);
+                 gap: 6px; margin-top: 10px; }
+    .slot-list div { padding: 3px 6px; background: #171a21; border-radius: 4px; }
+    .now-slot { color: var(--accent2); }
+    .err { color: var(--danger); font-size: 0.78rem; }
+
+    /* ---- Zernio panel header ---- */
+    .zernio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .zernio-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .zernio-title .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(139,92,246,0.15);
+      color: #c4b5fd;
+    }
+    .zernio-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .zernio-cache {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .zernio-cache .cache-tag { color: var(--accent2); }
+    .zernio-cache .live-tag  { color: var(--ok); }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(124,92,255,0.18), rgba(0,212,255,0.18));
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin: 0;
+    }
+    .refresh-btn:hover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(124,92,255,0.3), rgba(0,212,255,0.3));
+      transform: translateY(-1px);
+    }
+    .refresh-btn:active { transform: translateY(0); }
+    .refresh-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .refresh-btn .icon {
+      display: inline-block;
+      font-size: 0.95rem;
+      transition: transform 0.5s ease;
+    }
+    .refresh-btn.spinning .icon {
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .refresh-status {
+      font-size: 0.78rem;
+      min-height: 1em;
+      transition: opacity 0.3s ease;
+    }
+    .refresh-status .live-tag { color: var(--ok); }
+    .refresh-status .err { color: var(--danger); }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <h1>📦 Staging Service</h1>
-  <div class="sub">Buffer slot manager · Neon backend</div>
+  <h1>📦 Staging + Zernio</h1>
+  <div class="sub">Buffer queue · Zernio queue · both live</div>
 
   <div class="nav">
-    <button data-nav="dashboard" class="active">📊 Dashboard</button>
+    <button data-nav="dashboard" class="active">📊 Buffer</button>
+    <button data-nav="zernio">🎬 Zernio</button>
     <button data-nav="log">📜 Sent Log</button>
   </div>
 
-  <!-- =================== DASHBOARD =================== -->
+  <!-- =================== BUFFER DASHBOARD =================== -->
   <section id="view-dashboard" class="view active">
     <div class="stats" id="stats"></div>
     <div id="dashboard-body"></div>
   </section>
 
-  <!-- =================== QUEUE =================== -->
-  <section id="view-queue" class="view">
-    <a class="back-link" href="#" data-nav="dashboard">← Dashboard</a>
-    <h2 class="section-title" id="queue-title">Queue <small id="queue-meta"></small></h2>
-    <div class="row" style="margin-bottom:14px">
-      <button class="primary" id="queue-drain">⬇️ Drain this niche</button>
-      <button id="queue-flip-mode">🔄 Flip mode</button>
-    </div>
-    <div id="queue-body"></div>
-  </section>
+  <!-- =================== ZERNIO =================== -->
+  <section id="view-zernio" class="view">
 
-  <!-- =================== POST =================== -->
-  <section id="view-post" class="view">
-    <a class="back-link" href="#" id="post-back">← Back</a>
-    <h2 class="section-title">Post detail</h2>
-    <div id="post-body"></div>
+    <div class="zernio-header">
+      <div class="zernio-title">
+        🎬 Zernio Queue
+        <span class="badge">live</span>
+      </div>
+
+      <div class="zernio-actions">
+        <span class="zernio-cache" id="zernio-cache-info">—</span>
+        <span class="refresh-status" id="zernio-refresh-status"></span>
+        <button class="refresh-btn" id="zernio-refresh" title="Force refresh from Zernio">
+          <span class="icon">🔄</span>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats" id="zernio-stats"></div>
+    <div id="zernio-body"></div>
+    <div id="zernio-detail"></div>
   </section>
 
   <!-- =================== LOG =================== -->
   <section id="view-log" class="view">
-    <h2 class="section-title">Recent sends</h2>
+    <h2 class="section-title">Recent Buffer sends</h2>
     <div id="log-body"></div>
   </section>
 
@@ -172,44 +255,34 @@
 
 <script>
 "use strict";
-
 const $ = (id) => document.getElementById(id);
 
-// -----------------------------------------------------
-// View switching
-// -----------------------------------------------------
 function showView(name) {
   document.querySelectorAll(".view").forEach(v =>
     v.classList.toggle("active", v.id === "view-" + name));
-  document.querySelectorAll(".nav button").forEach(b =>
+  document.querySelectorAll(".nav button[data-nav]").forEach(b =>
     b.classList.toggle("active", b.dataset.nav === name));
 }
 
 document.querySelectorAll("[data-nav]").forEach(b => {
   b.addEventListener("click", (e) => {
     e.preventDefault();
-    const target = b.dataset.nav;
-    showView(target);
-    if (target === "dashboard") loadDashboard();
-    if (target === "log") loadLog();
+    const t = b.dataset.nav;
+    showView(t);
+    if (t === "dashboard") loadDashboard();
+    if (t === "zernio") loadZernio(false);
+    if (t === "log") loadLog();
   });
 });
 
-// -----------------------------------------------------
-// Toast
-// -----------------------------------------------------
 function toast(msg, isError) {
   const t = document.createElement("div");
-  t.className = "toast";
-  if (isError) t.style.borderColor = "var(--danger)";
+  t.className = "toast" + (isError ? " err" : "");
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 4000);
 }
 
-// -----------------------------------------------------
-// HTML escaping
-// -----------------------------------------------------
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -218,19 +291,24 @@ function esc(s) {
 
 function fmtDate(iso) {
   if (!iso) return "—";
-  try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("en-GB", {
+      timeZone: "Africa/Nairobi",
+      year: "numeric", month: "short", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch (e) { return iso; }
 }
 
 // -----------------------------------------------------
-// DASHBOARD
+// BUFFER DASHBOARD
 // -----------------------------------------------------
 async function loadDashboard() {
   try {
     const r = await fetch("/api/summary");
-    if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     const rows = d.rows || [];
-
     const totalPending = rows.reduce((s, r) => s + (r.pending || 0), 0);
     const totalSent    = rows.reduce((s, r) => s + (r.sent_today || 0), 0);
     $("stats").innerHTML = `
@@ -238,242 +316,220 @@ async function loadDashboard() {
       <div class="stat"><strong>${totalPending}</strong><span>Staged pending</span></div>
       <div class="stat"><strong>${totalSent}</strong><span>Sent today</span></div>
     `;
-
     if (!rows.length) {
       $("dashboard-body").innerHTML =
-        `<div class="empty">No Buffer niches found in remixmaster settings.json</div>`;
+        `<div class="empty">No Buffer niches found.</div>`;
       return;
     }
-
     $("dashboard-body").innerHTML = `
       <table>
         <thead>
           <tr>
             <th>Niche</th><th>Platform</th><th>Mode</th>
-            <th>Pending</th><th>Sent today</th>
-            <th>Last drain</th><th>Actions</th>
+            <th>Pending</th><th>Sent today</th><th>Last drain</th>
           </tr>
         </thead>
         <tbody>
           ${rows.map(r => `
             <tr>
-              <td><a href="#" data-open-queue="${esc(r.key)}">${esc(r.label)}</a></td>
+              <td>${esc(r.label)}</td>
               <td><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></td>
               <td><span class="pill ${esc(r.mode)}">${esc(r.mode)}</span></td>
               <td>${r.pending}</td>
               <td>${r.sent_today}</td>
               <td>${esc(fmtDate(r.last_drain))}</td>
-              <td>
-                <button data-drain="${esc(r.key)}">⬇️ Drain</button>
-                <button data-flip="${esc(r.key)}" data-mode="${r.mode === "staging" ? "direct" : "staging"}">
-                  ${r.mode === "staging" ? "➡️ Direct" : "⏸️ Staging"}
-                </button>
-              </td>
             </tr>
           `).join("")}
         </tbody>
       </table>
     `;
-
-    // wire buttons
-    $("dashboard-body").querySelectorAll("[data-open-queue]").forEach(a =>
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        openQueue(a.dataset.openQueue);
-      }));
-    $("dashboard-body").querySelectorAll("[data-drain]").forEach(b =>
-      b.addEventListener("click", () => drainNiche(b.dataset.drain)));
-    $("dashboard-body").querySelectorAll("[data-flip]").forEach(b =>
-      b.addEventListener("click", () => flipMode(b.dataset.flip, b.dataset.mode)));
   } catch (e) {
     toast("Dashboard error: " + e.message, true);
   }
 }
 
-async function drainNiche(niche) {
-  if (!confirm(`Drain "${niche}" now?`)) return;
-  toast("Draining " + niche + "…");
-  try {
-    const r = await fetch(`/api/drain/${encodeURIComponent(niche)}`,
-                         { method: "POST" });
-    const d = await r.json();
-    if (!d.success) throw new Error(d.error || "failed");
-    toast(`Sent: ${d.sent}${d.stopped ? " · " + d.stopped : ""}`);
-    loadDashboard();
-  } catch (e) {
-    toast("Drain error: " + e.message, true);
-  }
-}
-
-async function flipMode(niche, mode) {
-  try {
-    const r = await fetch(`/api/mode/${encodeURIComponent(niche)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode }),
-    });
-    const d = await r.json();
-    if (!d.success) throw new Error(d.error || "failed");
-    toast(`${niche} → ${mode}`);
-    loadDashboard();
-  } catch (e) {
-    toast("Mode error: " + e.message, true);
-  }
-}
-
 // -----------------------------------------------------
-// QUEUE view
+// ZERNIO PANEL — cached + debounced + force-refreshable
 // -----------------------------------------------------
-let CURRENT_NICHE = null;
-let CURRENT_MODE = "?";
+let zernioLastLoad = 0;
+let zernioInFlight = false;
 
-async function openQueue(niche) {
-  CURRENT_NICHE = niche;
-  showView("queue");
-  $("queue-title").firstChild.textContent = niche + " ";
-  $("queue-meta").textContent = "loading…";
+async function loadZernio(force) {
+  const now = performance.now();
+  if (!force && zernioInFlight) return;
+  if (!force && now - zernioLastLoad < 500) return;
+  zernioLastLoad = now;
+  zernioInFlight = true;
+
+  const t0 = performance.now();
+  const url = "/api/zernio/niches" + (force ? "?force=1" : "");
+
+  if (force) {
+    $("zernio-refresh-status").innerHTML =
+      `<span class="live-tag">refreshing…</span>`;
+  }
+
+  if (!$("zernio-body").innerHTML.trim()) {
+    $("zernio-body").innerHTML =
+      `<div class="empty">Loading Zernio niches…</div>`;
+  }
 
   try {
-    const r = await fetch(`/api/queue/${encodeURIComponent(niche)}`);
+    const r = await fetch(url);
     const d = await r.json();
-    if (!d.success) throw new Error(d.error || "failed");
-    CURRENT_MODE = d.mode;
-    $("queue-meta").textContent =
-      `${d.items.length} item(s) · mode ${d.mode}`;
+    const elapsed = Math.round(performance.now() - t0);
+    const rows = d.rows || [];
 
-    if (!d.items.length) {
-      $("queue-body").innerHTML = `<div class="empty">No staged posts for this niche.</div>`;
+    const totalScheduled = rows.reduce((s, r) => s + (r.scheduled_total || 0), 0);
+    const totalSlots     = rows.reduce((s, r) => s + (r.slots_free || 0), 0);
+    const okCount        = rows.filter(r => !r.error).length;
+
+    $("zernio-stats").innerHTML = `
+      <div class="stat"><strong>${rows.length}</strong><span>Zernio channels</span></div>
+      <div class="stat"><strong>${okCount}</strong><span>Reachable</span></div>
+      <div class="stat"><strong>${totalSlots}</strong><span>Free slots</span></div>
+      <div class="stat"><strong>${totalScheduled}</strong><span>Scheduled posts</span></div>
+    `;
+
+    const tag = d.cached
+      ? `<span class="cache-tag">⚡ cached</span>`
+      : `<span class="live-tag">🔄 live</span>`;
+    $("zernio-cache-info").innerHTML =
+      `${tag} · ${elapsed}ms · ${rows.length} niches`;
+
+    if (force) {
+      $("zernio-refresh-status").innerHTML =
+        `<span class="live-tag">✓ ${elapsed}ms</span>`;
+      setTimeout(() => {
+        const el = $("zernio-refresh-status");
+        if (el) el.textContent = "";
+      }, 3000);
+    }
+
+    if (!rows.length) {
+      $("zernio-body").innerHTML =
+        `<div class="empty">No Zernio niches found in config.json</div>`;
       return;
     }
 
-    $("queue-body").innerHTML = `
+    $("zernio-body").innerHTML = `
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Title</th><th>Status</th>
-            <th>Attempts</th><th>Queued</th><th>Sent</th><th>Actions</th>
+            <th>Niche</th><th>Queue</th>
+            <th>Free slots</th><th>Scheduled</th>
+            <th>Next slot</th><th></th>
           </tr>
         </thead>
         <tbody>
-          ${d.items.map(it => `
+          ${rows.map(r => `
             <tr>
-              <td><a href="#" data-open-post="${it.id}">${it.id}</a></td>
-              <td class="title-cell" title="${esc(it.title)}">${esc(it.title)}</td>
-              <td class="status-${esc(it.status)}">${esc(it.status)}</td>
-              <td>${it.attempts}</td>
-              <td>${esc(fmtDate(it.queued_at))}</td>
-              <td>${esc(fmtDate(it.sent_at))}</td>
               <td>
-                <button data-send="${it.id}">📤 Send</button>
-                <button class="danger" data-del="${it.id}">🗑️</button>
+                <strong>${esc(r.label)}</strong>
+                ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
+              </td>
+              <td>${esc(r.queue_name || "—")}</td>
+              <td>${r.slots_free}</td>
+              <td>${r.scheduled_total}</td>
+              <td>${esc(fmtDate(r.next_slot))}</td>
+              <td>
+                <button data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
               </td>
             </tr>
           `).join("")}
         </tbody>
       </table>
     `;
-    $("queue-body").querySelectorAll("[data-open-post]").forEach(a =>
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        openPost(+a.dataset.openPost);
-      }));
-    $("queue-body").querySelectorAll("[data-send]").forEach(b =>
-      b.addEventListener("click", () => sendOne(+b.dataset.send)));
-    $("queue-body").querySelectorAll("[data-del]").forEach(b =>
-      b.addEventListener("click", () => deleteOne(+b.dataset.del)));
+
+    $("zernio-body").querySelectorAll("[data-zernio-posts]").forEach(b => {
+      b.addEventListener("click", () => loadZernioPosts(b.dataset.zernioPosts, b));
+    });
   } catch (e) {
-    $("queue-body").innerHTML =
-      `<div class="empty" style="color:#fca5a5">Error: ${esc(e.message)}</div>`;
+    $("zernio-body").innerHTML =
+      `<div class="empty err">Error: ${esc(e.message)}</div>`;
+    if (force) {
+      $("zernio-refresh-status").innerHTML =
+        `<span class="err">refresh failed</span>`;
+    }
+  } finally {
+    zernioInFlight = false;
   }
 }
 
-$("queue-drain").addEventListener("click", () => {
-  if (!CURRENT_NICHE) return;
-  drainNiche(CURRENT_NICHE).then(() => openQueue(CURRENT_NICHE));
-});
-
-$("queue-flip-mode").addEventListener("click", () => {
-  if (!CURRENT_NICHE) return;
-  const next = CURRENT_MODE === "staging" ? "direct" : "staging";
-  flipMode(CURRENT_NICHE, next).then(() => openQueue(CURRENT_NICHE));
-});
-
-async function sendOne(id) {
+async function loadZernioPosts(niche, btn) {
+  const row = btn.closest("tr");
+  const label = row ? row.querySelector("strong").textContent : niche;
+  $("zernio-detail").innerHTML =
+    `<div class="empty">Loading posts for ${esc(label)}…</div>`;
+  const t0 = performance.now();
   try {
-    const r = await fetch(`/api/send/${id}`, { method: "POST" });
-    const d = await r.json();
-    toast(d.message || (d.success ? "sent" : "failed"), !d.success);
-    if (CURRENT_NICHE) openQueue(CURRENT_NICHE);
-  } catch (e) {
-    toast("Send error: " + e.message, true);
-  }
-}
-
-async function deleteOne(id) {
-  if (!confirm("Delete this staged post?")) return;
-  try {
-    const r = await fetch(`/api/delete/${id}`, { method: "POST" });
+    const r = await fetch(
+      `/api/zernio/posts/${encodeURIComponent(niche)}?limit=50`
+    );
     const d = await r.json();
     if (!d.success) throw new Error(d.error || "failed");
-    toast("deleted");
-    if (CURRENT_NICHE) openQueue(CURRENT_NICHE);
-  } catch (e) {
-    toast("Delete error: " + e.message, true);
-  }
-}
 
-// -----------------------------------------------------
-// POST view
-// -----------------------------------------------------
-async function openPost(id) {
-  showView("post");
-  $("post-back").onclick = (e) => {
-    e.preventDefault();
-    if (CURRENT_NICHE) openQueue(CURRENT_NICHE);
-    else showView("dashboard");
-  };
-  $("post-body").innerHTML = `<div class="empty">Loading…</div>`;
-  try {
-    const r = await fetch(`/api/post/${id}`);
-    const d = await r.json();
-    if (!d.success) throw new Error(d.error || "failed");
-    const it = d.item;
-    $("post-body").innerHTML = `
-      <div class="post-detail">
-        <dl>
-          <dt>ID</dt><dd>${it.id}</dd>
-          <dt>Niche</dt><dd>${esc(it.niche)}</dd>
-          <dt>Status</dt><dd class="status-${esc(it.status)}">${esc(it.status)}</dd>
-          <dt>Attempts</dt><dd>${it.attempts}</dd>
-          <dt>Queued</dt><dd>${esc(fmtDate(it.queued_at))}</dd>
-          <dt>Sent</dt><dd>${esc(fmtDate(it.sent_at))}</dd>
-          <dt>Buffer post id</dt><dd>${esc(it.buffer_post_id || "—")}</dd>
-          <dt>Error</dt><dd>${esc(it.error || "—")}</dd>
-          <dt>Title</dt><dd>${esc(it.title)}</dd>
-          <dt>Caption</dt><dd>${esc(it.caption)}</dd>
-          <dt>Video URL</dt>
-          <dd><a href="${esc(it.video_url)}" target="_blank">${esc(it.video_url)}</a></dd>
-        </dl>
-        <div class="row" style="margin-top:16px">
-          <button class="primary" data-send-post="${it.id}">📤 Send now</button>
-          <button class="danger" data-del-post="${it.id}">🗑️ Delete</button>
-        </div>
-      </div>
+    const posts = d.posts || [];
+    const pag   = d.pagination || {};
+    const total = pag.total || posts.length;
+    const pages = pag.pages || 1;
+    const elapsed = Math.round(performance.now() - t0);
+
+    $("zernio-detail").innerHTML = `
+      <h2 class="section-title" style="margin-top:24px">
+        ${esc(label)}
+        <small>${total} scheduled · page ${pag.page || 1} of ${pages} · ${elapsed}ms</small>
+      </h2>
+      <table>
+        <thead>
+          <tr><th>Title</th><th>Scheduled</th><th>Status</th><th>Video</th></tr>
+        </thead>
+        <tbody>
+          ${posts.map(p => `
+            <tr>
+              <td class="title-cell" title="${esc(p.title)}">${esc(p.title || "(untitled)")}</td>
+              <td>${esc(fmtDate(p.scheduled_for))}</td>
+              <td>${esc(p.status)}</td>
+              <td>
+                ${p.media_url
+                  ? `<a href="${esc(p.media_url)}" target="_blank">open</a>`
+                  : "—"}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
     `;
-    $("post-body").querySelector("[data-send-post]").addEventListener("click", () => {
-      sendOne(id).then(() => openPost(id));
-    });
-    $("post-body").querySelector("[data-del-post]").addEventListener("click", () => {
-      deleteOne(id).then(() => {
-        if (CURRENT_NICHE) openQueue(CURRENT_NICHE);
-        else showView("dashboard");
-      });
-    });
   } catch (e) {
-    $("post-body").innerHTML =
-      `<div class="empty" style="color:#fca5a5">Error: ${esc(e.message)}</div>`;
+    $("zernio-detail").innerHTML =
+      `<div class="empty err" style="margin-top:24px">Error: ${esc(e.message)}</div>`;
   }
 }
+
+// Force-refresh button (inside Zernio panel)
+document.getElementById("zernio-refresh").addEventListener("click", () => {
+  const btn = $("zernio-refresh");
+  btn.disabled = true;
+  btn.classList.add("spinning");
+  $("zernio-refresh-status").innerHTML =
+    `<span class="live-tag">warming cache…</span>`;
+
+  fetch("/api/zernio/refresh", { method: "POST" })
+    .then(() => {
+      setTimeout(() => {
+        loadZernio(true).finally(() => {
+          btn.disabled = false;
+          btn.classList.remove("spinning");
+        });
+      }, 1200);
+    })
+    .catch(() => {
+      $("zernio-refresh-status").innerHTML =
+        `<span class="err">refresh failed</span>`;
+      btn.disabled = false;
+      btn.classList.remove("spinning");
+    });
+});
 
 // -----------------------------------------------------
 // LOG
@@ -497,7 +553,7 @@ async function loadLog() {
         <tbody>
           ${rows.map(r => `
             <tr>
-              <td><a href="#" data-open-post="${r.id}">${r.id}</a></td>
+              <td>${r.id}</td>
               <td>${esc(r.niche)}</td>
               <td class="title-cell">${esc(r.title)}</td>
               <td>${esc(fmtDate(r.sent_at))}</td>
@@ -507,14 +563,9 @@ async function loadLog() {
         </tbody>
       </table>
     `;
-    $("log-body").querySelectorAll("[data-open-post]").forEach(a =>
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        openPost(+a.dataset.openPost);
-      }));
   } catch (e) {
     $("log-body").innerHTML =
-      `<div class="empty" style="color:#fca5a5">Error: ${esc(e.message)}</div>`;
+      `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
 
