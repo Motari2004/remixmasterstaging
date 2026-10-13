@@ -69,10 +69,12 @@
     .pill.direct  { background: rgba(34,197,94,0.15);  color: #4ade80; }
     .pill.staging { background: rgba(245,158,11,0.15); color: #fcd34d; }
     .pill.insta   { background: rgba(124,92,255,0.15); color: #a78bfa; }
+    .pill.instagram { background: rgba(124,92,255,0.15); color: #a78bfa; }
     .pill.tiktok  { background: rgba(0,212,255,0.15);  color: #67e8f9; }
     .pill.youtube { background: rgba(239,68,68,0.15);  color: #fca5a5; }
     .pill.facebook{ background: rgba(59,130,246,0.15); color: #93c5fd; }
     .pill.zernio  { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+    .pill.unknown { background: rgba(139,148,167,0.15); color: #8b93a7; }
 
     button {
       cursor: pointer; background: var(--panel2); color: var(--text);
@@ -107,13 +109,6 @@
     }
     .toast.err { border-color: var(--danger); }
 
-    .slot-list { background: #0f1115; border: 1px solid var(--border);
-                 border-radius: 8px; padding: 10px;
-                 font-family: monospace; font-size: 0.78rem;
-                 display: grid; grid-template-columns: repeat(3, 1fr);
-                 gap: 6px; margin-top: 10px; }
-    .slot-list div { padding: 3px 6px; background: #171a21; border-radius: 4px; }
-    .now-slot { color: var(--accent2); }
     .err { color: var(--danger); font-size: 0.78rem; }
 
     /* ---- Zernio panel header ---- */
@@ -201,6 +196,22 @@
     }
     .refresh-status .live-tag { color: var(--ok); }
     .refresh-status .err { color: var(--danger); }
+
+    /* ---- Platform breakdown strip ---- */
+    .platform-breakdown {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .platform-breakdown .label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -241,6 +252,7 @@
     </div>
 
     <div class="stats" id="zernio-stats"></div>
+    <div class="platform-breakdown" id="zernio-platform-breakdown" style="display:none;"></div>
     <div id="zernio-body"></div>
     <div id="zernio-detail"></div>
   </section>
@@ -349,7 +361,7 @@ async function loadDashboard() {
 }
 
 // -----------------------------------------------------
-// ZERNIO PANEL — cached + debounced + force-refreshable
+// ZERNIO PANEL
 // -----------------------------------------------------
 let zernioLastLoad = 0;
 let zernioInFlight = false;
@@ -391,6 +403,25 @@ async function loadZernio(force) {
       <div class="stat"><strong>${totalScheduled}</strong><span>Scheduled posts</span></div>
     `;
 
+    // ---- Platform breakdown strip ----
+    const byPlatform = {};
+    rows.forEach(r => {
+      const p = (r.platform || "unknown").toLowerCase();
+      byPlatform[p] = (byPlatform[p] || 0) + 1;
+    });
+    const bdEl = $("zernio-platform-breakdown");
+    if (Object.keys(byPlatform).length) {
+      const pills = Object.entries(byPlatform)
+        .sort()
+        .map(([p, n]) =>
+          `<span class="pill ${esc(p)}">${esc(p)} · ${n}</span>`)
+        .join(" ");
+      bdEl.innerHTML = `<span class="label">By platform</span> ${pills}`;
+      bdEl.style.display = "flex";
+    } else {
+      bdEl.style.display = "none";
+    }
+
     const tag = d.cached
       ? `<span class="cache-tag">⚡ cached</span>`
       : `<span class="live-tag">🔄 live</span>`;
@@ -408,7 +439,7 @@ async function loadZernio(force) {
 
     if (!rows.length) {
       $("zernio-body").innerHTML =
-        `<div class="empty">No Zernio niches found in config.json</div>`;
+        `<div class="empty">No Zernio niches found in settings.json</div>`;
       return;
     }
 
@@ -416,18 +447,25 @@ async function loadZernio(force) {
       <table>
         <thead>
           <tr>
-            <th>Niche</th><th>Queue</th>
-            <th>Free slots</th><th>Scheduled</th>
-            <th>Next slot</th><th></th>
+            <th>Niche</th>
+            <th>Platform</th>
+            <th>Queue</th>
+            <th>Free slots</th>
+            <th>Scheduled</th>
+            <th>Next slot</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          ${rows.map(r => `
+          ${rows.map(r => {
+            const plat = (r.platform || "unknown").toLowerCase();
+            return `
             <tr>
               <td>
                 <strong>${esc(r.label)}</strong>
                 ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
               </td>
+              <td><span class="pill ${esc(plat)}">${esc(plat)}</span></td>
               <td>${esc(r.queue_name || "—")}</td>
               <td>${r.slots_free}</td>
               <td>${r.scheduled_total}</td>
@@ -435,8 +473,8 @@ async function loadZernio(force) {
               <td>
                 <button data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
               </td>
-            </tr>
-          `).join("")}
+            </tr>`;
+          }).join("")}
         </tbody>
       </table>
     `;
@@ -459,6 +497,7 @@ async function loadZernio(force) {
 async function loadZernioPosts(niche, btn) {
   const row = btn.closest("tr");
   const label = row ? row.querySelector("strong").textContent : niche;
+  const platform = row ? (row.querySelector(".pill") || {}).textContent : "";
   $("zernio-detail").innerHTML =
     `<div class="empty">Loading posts for ${esc(label)}…</div>`;
   const t0 = performance.now();
@@ -478,6 +517,7 @@ async function loadZernioPosts(niche, btn) {
     $("zernio-detail").innerHTML = `
       <h2 class="section-title" style="margin-top:24px">
         ${esc(label)}
+        <span class="pill ${esc((platform||'').trim().toLowerCase())}">${esc((platform||'').trim())}</span>
         <small>${total} scheduled · page ${pag.page || 1} of ${pages} · ${elapsed}ms</small>
       </h2>
       <table>
@@ -506,7 +546,7 @@ async function loadZernioPosts(niche, btn) {
   }
 }
 
-// Force-refresh button (inside Zernio panel)
+// Refresh button inside Zernio panel
 document.getElementById("zernio-refresh").addEventListener("click", () => {
   const btn = $("zernio-refresh");
   btn.disabled = true;

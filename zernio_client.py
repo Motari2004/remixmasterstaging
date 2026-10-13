@@ -133,6 +133,7 @@ def _fetch_summary(niche_key, niche_cfg):
     summary = {
         "niche":           niche_key,
         "label":           niche_cfg.get("label", niche_key),
+        "platform":        (niche_cfg.get("platform") or "youtube").lower(),
         "profile_id":      profile_id,
         "account_id":      niche_cfg.get("zernio_account_id", ""),
         "queue_name":      "",
@@ -277,6 +278,7 @@ def all_summaries(force=False):
             except Exception as e:
                 val = {
                     "niche": key, "label": key, "error": str(e),
+                    "platform": "",
                     "queue_name": "", "slots_free": 0,
                     "scheduled_total": 0, "next_slot": "",
                     "profile_id": "", "account_id": "",
