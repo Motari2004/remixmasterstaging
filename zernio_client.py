@@ -1,15 +1,9 @@
 """
-Fast Zernio client for the staging viewer.
+Zernio client — niches are handed in per request via set_niches().
 
-Optimisations:
-  - Parallel fetch (ThreadPoolExecutor) across all niches
-  - Stale-while-revalidate cache: return instantly, refresh in background
-  - 5-minute TTL, 3-minute background warmer
-  - Cached connection pooling via requests.Session
-  - Async refresh route support
+Fast: parallel fetch, stale-while-revalidate, background warmer.
+Works on Vercel and locally (no file reads).
 """
-import os
-import json
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -23,42 +17,31 @@ except ImportError:
 
 
 ZERNIO_API = "https://zernio.com/api/v1"
-HERE       = os.path.dirname(os.path.abspath(__file__))
-CONFIG     = os.path.join(HERE, "config.json")
 
-# ---- Cache tuning ----
-SUMMARY_TTL = 300        # 5 min for the summary row
-POSTS_TTL   = 600        # 10 min for the post list
-WARMER_SEC  = 180        # background warmer every 3 min
-MAX_WORKERS = 9          # one per niche
+SUMMARY_TTL = 300
+POSTS_TTL   = 600
+WARMER_SEC  = 180
+MAX_WORKERS = 9
 
 _cache_lock = threading.Lock()
-_cache = {}              # {key: (expires_at, value)}
-_refresh_locks = {}      # {key: threading.Lock} — prevent duplicate refreshes
+_cache = {}
+_refresh_locks = {}
 
-
-# ------------------------------------------------------------------
-# HTTP session with connection pooling + retries
-# ------------------------------------------------------------------
 _session_local = threading.local()
 
 
+# ------------------------------------------------------------------
+# HTTP
+# ------------------------------------------------------------------
 def _session():
-    """One requests.Session per thread — reuses TCP connections."""
     s = getattr(_session_local, "session", None)
     if s is None:
         s = requests.Session()
-        retry = Retry(
-            total=2,
-            backoff_factor=0.3,
-            status_forcelist=(500, 502, 503, 504),
-            allowed_methods=("GET",),
-        )
-        adapter = HTTPAdapter(
-            pool_connections=16,
-            pool_maxsize=16,
-            max_retries=retry,
-        )
+        retry = Retry(total=2, backoff_factor=0.3,
+                      status_forcelist=(500, 502, 503, 504),
+                      allowed_methods=("GET",))
+        adapter = HTTPAdapter(pool_connections=16, pool_maxsize=16,
+                              max_retries=retry)
         s.mount("https://", adapter)
         s.mount("http://", adapter)
         _session_local.session = s
@@ -75,14 +58,9 @@ def _api_get(path, api_key, params=None, timeout=15):
 
 
 # ------------------------------------------------------------------
-# Cache primitives — stale-while-revalidate
+# Cache (stale-while-revalidate)
 # ------------------------------------------------------------------
 def _cache_get(key, allow_stale=True):
-    """
-    Return (value, is_fresh, is_stale).
-      - is_fresh: within TTL
-      - is_stale: past TTL but still present (usable, should be refreshed)
-    """
     with _cache_lock:
         item = _cache.get(key)
         if not item:
@@ -111,10 +89,9 @@ def _get_refresh_lock(key):
 
 
 def _refresh_in_background(fn, key, ttl, *args, **kwargs):
-    """Fire-and-forget refresh, deduped by key."""
     lk = _get_refresh_lock(key)
     if not lk.acquire(blocking=False):
-        return  # already refreshing
+        return
     def _run():
         try:
             val = fn(*args, **kwargs)
@@ -127,21 +104,27 @@ def _refresh_in_background(fn, key, ttl, *args, **kwargs):
 
 
 # ------------------------------------------------------------------
-# Public: list niches
+# Niche list — supplied by the caller each request
 # ------------------------------------------------------------------
+_niches_cache = {"value": {}, "expires": 0}
+_niches_lock = threading.Lock()
+NICHES_TTL = 300
+
+
+def set_niches(niches):
+    """Viewer calls this per request with the settings-derived dict."""
+    with _niches_lock:
+        _niches_cache["value"] = niches or {}
+        _niches_cache["expires"] = time.time() + NICHES_TTL
+
+
 def list_niches():
-    try:
-        with open(CONFIG, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-    except Exception as e:
-        print(f"⚠️  Cannot read config.json: {e}")
-        return {}
-    niches = cfg.get("zernio_niches", {})
-    return niches if isinstance(niches, dict) else {}
+    with _niches_lock:
+        return dict(_niches_cache["value"] or {})
 
 
 # ------------------------------------------------------------------
-# Per-niche: fetch raw data (what a cache miss actually does)
+# Fetchers
 # ------------------------------------------------------------------
 def _fetch_summary(niche_key, niche_cfg):
     profile_id = niche_cfg["zernio_profile_id"]
@@ -161,13 +144,12 @@ def _fetch_summary(niche_key, niche_cfg):
         "error":           None,
     }
 
-    # Both calls happen in parallel via tiny local threads
     with ThreadPoolExecutor(max_workers=2) as pool:
         fut_q = pool.submit(_api_get, "/queue/preview", api_key,
                             {"profileId": profile_id})
         fut_p = pool.submit(_api_get, "/posts", api_key,
-                            {"profileId": profile_id, "status": "scheduled",
-                             "limit": 1})
+                            {"profileId": profile_id,
+                             "status": "scheduled", "limit": 1})
 
         try:
             q = fut_q.result(timeout=20)
@@ -232,7 +214,7 @@ def _fetch_posts(niche_key, niche_cfg, page, limit):
 
 
 # ------------------------------------------------------------------
-# Public: single niche (stale-while-revalidate)
+# Public API
 # ------------------------------------------------------------------
 def summary_for_niche(niche_key, niche_cfg, force=False):
     key = f"summary:{niche_key}"
@@ -243,7 +225,6 @@ def summary_for_niche(niche_key, niche_cfg, force=False):
                 _refresh_in_background(_fetch_summary, key,
                                        SUMMARY_TTL, niche_key, niche_cfg)
             return val
-    # Cold cache or forced refresh — do it synchronously
     val = _fetch_summary(niche_key, niche_cfg)
     _cache_set(key, val, SUMMARY_TTL)
     return val
@@ -263,19 +244,11 @@ def scheduled_posts_for_niche(niche_key, niche_cfg, page=1, limit=50, force=Fals
     return val
 
 
-# ------------------------------------------------------------------
-# Public: bulk fetch, all niches in parallel
-# ------------------------------------------------------------------
 def all_summaries(force=False):
-    """
-    Return a dict {niche_key: summary}. Fetches all niches in parallel.
-    Uses stale-while-revalidate per niche.
-    """
     niches = list_niches()
     if not niches:
         return {}
 
-    # Fast path — everything from cache
     out = {}
     to_fetch = []
     for key, cfg in niches.items():
@@ -292,8 +265,7 @@ def all_summaries(force=False):
     if not to_fetch:
         return out
 
-    # Parallel fetch of the missing ones
-    with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(to_fetch))) as pool:
+    with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, max(1, len(to_fetch)))) as pool:
         futures = {
             pool.submit(_fetch_summary, key, cfg): (key, cfg)
             for key, cfg in to_fetch
@@ -323,7 +295,6 @@ _warmer_lock = threading.Lock()
 
 
 def start_warmer():
-    """Spawn a daemon thread that keeps the summary cache warm."""
     global _warmer_started
     with _warmer_lock:
         if _warmer_started:
@@ -331,7 +302,6 @@ def start_warmer():
         _warmer_started = True
 
     def _loop():
-        # Initial warm
         try:
             all_summaries(force=False)
         except Exception as e:
@@ -339,7 +309,7 @@ def start_warmer():
         while True:
             time.sleep(WARMER_SEC)
             try:
-                all_summaries(force=False)   # refresh stale in background
+                all_summaries(force=False)
             except Exception as e:
                 print(f"⚠️  warmer loop: {e}")
 
@@ -348,21 +318,13 @@ def start_warmer():
 
 
 def cache_stats():
-    """For the /api/zernio/stats route."""
     now = time.time()
     with _cache_lock:
-        entries = []
-        for k, (exp, val) in _cache.items():
-            entries.append({
-                "key":     k,
-                "ttl_left": max(0, int(exp - now)),
-                "fresh":   exp > now,
-            })
+        entries = [{"key": k, "ttl_left": max(0, int(exp - now)), "fresh": exp > now}
+                   for k, (exp, _) in _cache.items()]
     return {
-        "entries":      entries,
-        "entry_count":  len(entries),
-        "warmer_on":    _warmer_started,
-        "summary_ttl":  SUMMARY_TTL,
-        "posts_ttl":    POSTS_TTL,
-        "warmer_sec":   WARMER_SEC,
+        "entries": entries, "entry_count": len(entries),
+        "warmer_on": _warmer_started,
+        "summary_ttl": SUMMARY_TTL, "posts_ttl": POSTS_TTL,
+        "warmer_sec": WARMER_SEC,
     }
