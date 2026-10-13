@@ -4,379 +4,738 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f1115">
+  <meta name="color-scheme" content="dark">
   <title>📦 Staging + Zernio</title>
   <style>
+    /* =====================================================
+       1. DESIGN TOKENS
+       ===================================================== */
     :root {
-      --bg: #0f1115; --panel: #171a21; --panel2: #1e222b;
-      --border: #2a2f3a; --text: #e6e9ef; --muted: #8b93a7;
-      --accent: #7c5cff; --accent2: #00d4ff;
-      --ok: #22c55e; --warn: #f59e0b; --danger: #ef4444;
+      /* Colors */
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel2: #1e222b;
+      --panel-hover: #232833;
+      --border: #2a2f3a;
+      --border-soft: rgba(255,255,255,0.04);
+      --text: #e6e9ef;
+      --muted: #8b93a7;
+      --muted-2: #6b7280;
+      --accent: #7c5cff;
+      --accent2: #00d4ff;
+      --ok: #22c55e;
+      --ok-soft: #4ade80;
+      --warn: #f59e0b;
+      --warn-soft: #fcd34d;
+      --danger: #ef4444;
+      --danger-soft: #fca5a5;
+
+      /* Platform colors */
+      --c-youtube:   #fca5a5;
+      --c-youtube-b: rgba(239,68,68,0.14);
+      --c-tiktok:    #67e8f9;
+      --c-tiktok-b:  rgba(0,212,255,0.14);
+      --c-instagram: #a78bfa;
+      --c-instagram-b: rgba(124,92,255,0.14);
+      --c-facebook:  #93c5fd;
+      --c-facebook-b: rgba(59,130,246,0.14);
+      --c-zernio:    #c4b5fd;
+      --c-zernio-b:  rgba(139,92,246,0.14);
+      --c-unknown:   #8b93a7;
+      --c-unknown-b: rgba(139,148,167,0.14);
+
+      /* Spacing scale */
+      --s-1: 4px;
+      --s-2: 8px;
+      --s-3: 12px;
+      --s-4: 16px;
+      --s-5: 20px;
+      --s-6: 24px;
+      --s-7: 32px;
+
+      /* Radii */
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 10px;
+      --r-xl: 14px;
+
+      /* Motion */
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --dur-fast: 120ms;
+      --dur: 180ms;
+      --dur-slow: 300ms;
+
+      /* Layout */
+      --shell-pad: var(--s-4);
+      --max-width: 1200px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { -webkit-text-size-adjust: 100%; }
+
+    /* =====================================================
+       2. RESET
+       ===================================================== */
+    *,
+    *::before,
+    *::after { box-sizing: border-box; }
+
+    * { margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: radial-gradient(1200px 600px at 10% -10%, #1a1f2e, var(--bg)) fixed;
-      color: var(--text); min-height: 100vh;
-      padding: 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      background: radial-gradient(
+        1200px 600px at 10% -10%,
+        #1a1f2e 0%,
+        var(--bg) 60%
+      ) fixed;
+      color: var(--text);
+      min-height: 100dvh;
+      padding: var(--shell-pad);
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
-    .app { max-width: 1200px; margin: 0 auto; }
+
+    /* =====================================================
+       3. LAYOUT SHELL
+       ===================================================== */
+    .app {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-4);
+    }
+
+    .app-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+    }
 
     h1 {
-      font-size: 1.4rem; margin-bottom: 4px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text; background-clip: text; color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
       word-break: break-word;
     }
-    .sub { color: var(--muted); margin-bottom: 16px; font-size: 0.8rem; }
-    a { color: var(--accent2); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
-    /* ------- Nav: horizontal scroll on mobile ------- */
+    .sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    /* =====================================================
+       4. NAVIGATION (tabs)
+       ===================================================== */
     .nav {
-      display: flex; gap: 4px; margin-bottom: 16px;
-      background: var(--panel2); padding: 4px; border-radius: 10px;
+      display: flex;
+      gap: 2px;
+      padding: 4px;
+      background: var(--panel2);
       border: 1px solid var(--border);
+      border-radius: var(--r-lg);
       width: 100%;
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      scroll-snap-type: x proximity;
     }
     .nav::-webkit-scrollbar { display: none; }
+
     .nav button {
-      padding: 10px 14px; border-radius: 7px; background: transparent;
-      color: var(--muted); border: none; cursor: pointer;
-      font-size: 0.85rem; font-weight: 600; font-family: inherit;
+      appearance: none;
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: var(--r-md);
+      cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
       min-height: 40px;
+      scroll-snap-align: start;
+      transition:
+        color var(--dur-fast) var(--ease),
+        background var(--dur-fast) var(--ease),
+        transform var(--dur-fast) var(--ease);
     }
     .nav button:hover { color: var(--text); }
+    .nav button:active { transform: scale(0.97); }
     .nav button.active {
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: white;
+      color: #fff;
+      box-shadow:
+        0 4px 12px -2px rgba(124,92,255,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.08);
     }
 
-    /* ------- Stats: 2x2 grid on mobile ------- */
+    /* =====================================================
+       5. VIEWS
+       ===================================================== */
+    .view {
+      display: none;
+      animation: viewFade var(--dur-slow) var(--ease-out);
+    }
+    .view.active { display: block; }
+
+    @keyframes viewFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    /* =====================================================
+       6. STATS
+       ===================================================== */
     .stats {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s-3);
+      margin-bottom: var(--s-4);
     }
+
     .stat {
-      background: var(--panel); padding: 12px 14px; border-radius: 10px;
+      background: var(--panel);
       border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
       min-width: 0;
+      transition: border-color var(--dur) var(--ease);
     }
+    .stat:hover { border-color: var(--border); }
+
     .stat strong {
-      display: block; font-size: 1.3rem; color: var(--accent2);
-      margin-bottom: 2px; font-variant-numeric: tabular-nums;
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent2);
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
     }
     .stat span {
-      color: var(--muted); font-size: 0.68rem;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      line-height: 1.3;
       display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      line-height: 1.3;
       word-break: break-word;
     }
 
-    /* ------- Tables: horizontal scroll wrapper ------- */
+    /* =====================================================
+       7. TABLES (desktop + tablet)
+       ===================================================== */
     .table-wrap {
       width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      border-radius: 10px;
-      border: 1px solid var(--border);
       background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
-    .table-wrap::-webkit-scrollbar { height: 6px; }
+    .table-wrap::-webkit-scrollbar { height: 8px; }
+    .table-wrap::-webkit-scrollbar-track { background: transparent; }
     .table-wrap::-webkit-scrollbar-thumb {
-      background: var(--border); border-radius: 3px;
+      background: var(--border);
+      border-radius: 4px;
     }
+    .table-wrap::-webkit-scrollbar-thumb:hover {
+      background: #3a4050;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: transparent;
-      min-width: 600px;
+      min-width: 640px;
     }
+
     th, td {
-      padding: 10px 12px; text-align: left;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 0.83rem;
       border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--panel2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+    }
+
+    tbody tr {
+      transition: background var(--dur-fast) var(--ease);
+    }
+    tbody tr:hover td { background: var(--panel2); }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .title-cell {
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
-    th {
-      background: var(--panel2); color: var(--muted);
-      font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.8px;
-      position: sticky; top: 0; z-index: 1;
-    }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--panel2); }
-    .title-cell {
-      max-width: 260px; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap;
-    }
 
-    /* ------- Pills ------- */
+    /* =====================================================
+       8. PILLS
+       ===================================================== */
     .pill {
-      display: inline-block; padding: 3px 9px; border-radius: 999px;
-      font-size: 0.66rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.4px; white-space: nowrap;
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      line-height: 1.4;
+      border: 1px solid transparent;
     }
-    .pill.direct  { background: rgba(34,197,94,0.15);  color: #4ade80; }
-    .pill.staging { background: rgba(245,158,11,0.15); color: #fcd34d; }
-    .pill.insta,
-    .pill.instagram { background: rgba(124,92,255,0.15); color: #a78bfa; }
-    .pill.tiktok  { background: rgba(0,212,255,0.15);  color: #67e8f9; }
-    .pill.youtube { background: rgba(239,68,68,0.15);  color: #fca5a5; }
-    .pill.facebook{ background: rgba(59,130,246,0.15); color: #93c5fd; }
-    .pill.zernio  { background: rgba(139,92,246,0.15); color: #c4b5fd; }
-    .pill.unknown { background: rgba(139,148,167,0.15); color: #8b93a7; }
+    .pill.direct  { background: rgba(34,197,94,0.14);  color: var(--ok-soft);
+                    border-color: rgba(34,197,94,0.25); }
+    .pill.staging { background: rgba(245,158,11,0.14); color: var(--warn-soft);
+                    border-color: rgba(245,158,11,0.25); }
+    .pill.youtube { background: var(--c-youtube-b);   color: var(--c-youtube);
+                    border-color: rgba(239,68,68,0.25); }
+    .pill.tiktok  { background: var(--c-tiktok-b);    color: var(--c-tiktok);
+                    border-color: rgba(0,212,255,0.25); }
+    .pill.instagram,
+    .pill.insta   { background: var(--c-instagram-b); color: var(--c-instagram);
+                    border-color: rgba(124,92,255,0.25); }
+    .pill.facebook{ background: var(--c-facebook-b);  color: var(--c-facebook);
+                    border-color: rgba(59,130,246,0.25); }
+    .pill.zernio  { background: var(--c-zernio-b);    color: var(--c-zernio);
+                    border-color: rgba(139,92,246,0.25); }
+    .pill.unknown { background: var(--c-unknown-b);   color: var(--c-unknown);
+                    border-color: rgba(139,148,167,0.25); }
 
-    /* ------- Buttons ------- */
+    /* =====================================================
+       9. BUTTONS
+       ===================================================== */
     button {
-      cursor: pointer; background: var(--panel2); color: var(--text);
-      border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.82rem; font-family: inherit;
-      min-height: 40px;
-      transition: border-color 0.15s ease, transform 0.1s ease;
+      font-family: inherit;
+      cursor: pointer;
     }
-    button:hover { border-color: var(--accent); }
-    button:active { transform: scale(0.98); }
-    button.danger { color: #fca5a5; }
 
+    .btn {
+      appearance: none;
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      min-height: 38px;
+      transition:
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease),
+        transform var(--dur-fast) var(--ease);
+    }
+    .btn:hover {
+      background: var(--panel-hover);
+      border-color: var(--accent);
+    }
+    .btn:active { transform: scale(0.97); }
+
+    /* =====================================================
+       10. EMPTY / ERROR STATES
+       ===================================================== */
     .empty {
-      padding: 30px 20px; text-align: center; color: var(--muted);
-      background: var(--panel); border-radius: 10px;
-      border: 1px dashed var(--border); font-size: 0.9rem;
-    }
-
-    .view { display: none; }
-    .view.active { display: block; }
-
-    .section-title {
-      font-size: 1rem; margin-bottom: 12px;
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .section-title small {
-      color: var(--muted); font-size: 0.75rem;
-      font-weight: normal;
-    }
-
-    /* ------- Toast ------- */
-    .toast {
-      position: fixed;
-      left: 16px; right: 16px;
-      bottom: 16px;
-      background: var(--panel2); border: 1px solid var(--accent);
-      color: var(--text); padding: 12px 16px; border-radius: 10px;
-      font-size: 0.85rem; z-index: 999;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      padding: 40px 24px;
       text-align: center;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: var(--r-lg);
+      font-size: 0.9rem;
     }
-    .toast.err { border-color: var(--danger); }
+    .empty.err { border-color: rgba(239,68,68,0.35); color: var(--danger-soft); }
 
-    .err { color: var(--danger); font-size: 0.75rem; }
+    .err {
+      color: var(--danger-soft);
+      font-size: 0.74rem;
+      margin-top: 2px;
+    }
 
-    /* ------- Zernio header ------- */
+    /* =====================================================
+       11. ZERNIO PANEL HEADER
+       ===================================================== */
     .zernio-header {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: var(--s-3);
+      margin-bottom: var(--s-4);
     }
+
     .zernio-title {
-      font-size: 1rem;
-      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: var(--s-2);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.005em;
     }
+
     .zernio-title .badge {
-      font-size: 0.65rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      padding: 3px 9px; border-radius: 999px;
-      background: rgba(139,92,246,0.15); color: #c4b5fd;
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--c-zernio-b);
+      color: var(--c-zernio);
+      border: 1px solid rgba(139,92,246,0.28);
     }
+
     .zernio-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--s-2);
       flex-wrap: wrap;
     }
+
     .zernio-cache {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       color: var(--muted);
       flex: 1 1 auto;
       min-width: 0;
     }
-    .zernio-cache .cache-tag { color: var(--accent2); }
-    .zernio-cache .live-tag  { color: var(--ok); }
+    .zernio-cache .cache-tag { color: var(--accent2); font-weight: 600; }
+    .zernio-cache .live-tag  { color: var(--ok-soft); font-weight: 600; }
 
-    /* ------- Refresh button ------- */
+    .refresh-status {
+      font-size: 0.74rem;
+      min-height: 1em;
+    }
+    .refresh-status .live-tag { color: var(--ok-soft); font-weight: 600; }
+    .refresh-status .err { color: var(--danger-soft); }
+
     .refresh-btn {
+      appearance: none;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--s-2);
       padding: 10px 16px;
-      border-radius: 8px;
-      background: linear-gradient(135deg,
-        rgba(124,92,255,0.22), rgba(0,212,255,0.22));
+      border-radius: var(--r-md);
+      background: linear-gradient(
+        135deg,
+        rgba(124,92,255,0.20),
+        rgba(0,212,255,0.20)
+      );
       border: 1px solid var(--border);
       color: var(--text);
+      font-family: inherit;
       font-size: 0.82rem;
       font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.15s ease;
       min-height: 40px;
       flex-shrink: 0;
+      transition:
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease),
+        transform var(--dur-fast) var(--ease),
+        box-shadow var(--dur) var(--ease);
     }
     .refresh-btn:hover {
       border-color: var(--accent);
-      background: linear-gradient(135deg,
-        rgba(124,92,255,0.32), rgba(0,212,255,0.32));
+      background: linear-gradient(
+        135deg,
+        rgba(124,92,255,0.30),
+        rgba(0,212,255,0.30)
+      );
+      box-shadow: 0 4px 14px -4px rgba(124,92,255,0.4);
     }
+    .refresh-btn:active { transform: scale(0.97); }
     .refresh-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
     .refresh-btn .icon {
       display: inline-block;
       font-size: 0.95rem;
+      line-height: 1;
+      transition: transform var(--dur) var(--ease);
     }
     .refresh-btn.spinning .icon {
       animation: spin 0.8s linear infinite;
     }
+
     @keyframes spin {
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
 
-    .refresh-status {
-      font-size: 0.72rem;
-      min-height: 1em;
-    }
-    .refresh-status .live-tag { color: var(--ok); }
-    .refresh-status .err { color: var(--danger); }
-
-    /* ------- Platform breakdown ------- */
+    /* =====================================================
+       12. PLATFORM BREAKDOWN STRIP
+       ===================================================== */
     .platform-breakdown {
-      margin-bottom: 14px;
       display: flex;
-      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
+      gap: var(--s-2);
+      margin-bottom: var(--s-4);
     }
     .platform-breakdown .label {
-      color: var(--muted);
-      font-size: 0.68rem;
+      color: var(--muted-2);
+      font-size: 0.66rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-right: 2px;
+      letter-spacing: 0.9px;
+      margin-right: var(--s-1);
     }
 
-    /* ================================================
-       TABLET (>= 640px)
-       ================================================ */
+    /* =====================================================
+       13. MOBILE CARDS
+       ===================================================== */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px;
+      transition: border-color var(--dur) var(--ease);
+    }
+    .card:hover { border-color: #343b48; }
+
+    .card .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--s-3);
+      margin-bottom: var(--s-3);
+    }
+    .card .name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.35;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    .card .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s-3) var(--s-4);
+      margin-bottom: var(--s-3);
+    }
+    .card .field { min-width: 0; }
+    .card .field .k {
+      display: block;
+      color: var(--muted-2);
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 3px;
+    }
+    .card .field .v {
+      display: block;
+      font-size: 0.86rem;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    .card .actions {
+      display: flex;
+      gap: var(--s-2);
+      margin-top: var(--s-2);
+    }
+    .card .actions .btn,
+    .card .actions button { flex: 1; }
+
+    /* =====================================================
+       14. SECTION TITLE
+       ===================================================== */
+    .section-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--s-2);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: var(--s-3);
+      letter-spacing: -0.005em;
+    }
+    .section-title small {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 400;
+    }
+
+    /* =====================================================
+       15. TOAST
+       ===================================================== */
+    .toast {
+      position: fixed;
+      left: var(--s-4);
+      right: var(--s-4);
+      bottom: var(--s-4);
+      z-index: 9999;
+      background: var(--panel2);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: var(--r-lg);
+      font-size: 0.85rem;
+      text-align: center;
+      box-shadow:
+        0 12px 40px -8px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(124,92,255,0.15);
+      animation: toastIn var(--dur-slow) var(--ease-out);
+    }
+    .toast.err { border-color: var(--danger); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =====================================================
+       16. RESPONSIVE — TABLET
+       ===================================================== */
     @media (min-width: 640px) {
-      body { padding: 20px; }
+      :root { --shell-pad: var(--s-5); }
       h1 { font-size: 1.5rem; }
-      .stats { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-      .stat strong { font-size: 1.4rem; }
+      .stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--s-3);
+      }
+      .stat { padding: 16px 18px; }
+      .stat strong { font-size: 1.5rem; }
       .stat span { font-size: 0.7rem; }
+
       .zernio-header {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
       }
-      .zernio-actions { flex: 0 1 auto; }
+      .zernio-actions { flex: 0 1 auto; flex-wrap: nowrap; }
       .zernio-cache { flex: 0 1 auto; }
+
       .toast {
-        left: auto; right: 24px; bottom: 24px;
-        max-width: 400px;
+        left: auto;
+        right: var(--s-6);
+        bottom: var(--s-6);
+        max-width: 420px;
         text-align: left;
       }
     }
 
-    /* ================================================
-       DESKTOP (>= 900px)
-       ================================================ */
+    /* =====================================================
+       17. RESPONSIVE — DESKTOP
+       ===================================================== */
     @media (min-width: 900px) {
-      body { padding: 24px; }
+      :root { --shell-pad: var(--s-6); }
+      body { font-size: 15.5px; }
       h1 { font-size: 1.6rem; }
       .nav { width: fit-content; }
-      .stat strong { font-size: 1.5rem; }
-      .stat span { font-size: 0.75rem; }
       table { min-width: 0; }
-      th, td { padding: 10px 14px; font-size: 0.85rem; }
-      .title-cell { max-width: 380px; }
+      .title-cell { max-width: 400px; }
+      .app { gap: var(--s-5); }
     }
 
-    /* ------- Mobile-only: stacked card view ------- */
+    /* =====================================================
+       18. RESPONSIVE — MOBILE (cards instead of tables)
+       ===================================================== */
     @media (max-width: 639px) {
-      .zernio-cards { display: flex; flex-direction: column; gap: 10px; }
-      .zernio-card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 12px;
+      .table-wrap { display: none !important; }
+      /* Cards are rendered server-side into #...-body */
+      .cards { display: flex; }
+    }
+
+    /* Hide cards on tablet/desktop since we render tables there */
+    @media (min-width: 640px) {
+      .cards { display: none !important; }
+    }
+
+    /* =====================================================
+       19. FOCUS STATES (accessibility)
+       ===================================================== */
+    :focus-visible {
+      outline: 2px solid var(--accent2);
+      outline-offset: 2px;
+      border-radius: var(--r-sm);
+    }
+    button:focus-visible {
+      outline-offset: 2px;
+    }
+
+    /* =====================================================
+       20. SCROLLBAR (desktop body)
+       ===================================================== */
+    @media (min-width: 900px) {
+      body::-webkit-scrollbar { width: 10px; }
+      body::-webkit-scrollbar-track { background: transparent; }
+      body::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 5px;
+        border: 2px solid var(--bg);
       }
-      .zernio-card .top {
-        display: flex; justify-content: space-between;
-        align-items: flex-start; gap: 8px;
-        margin-bottom: 10px;
-      }
-      .zernio-card .name {
-        font-weight: 600; font-size: 0.95rem;
-        min-width: 0;
-        word-break: break-word;
-      }
-      .zernio-card .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
-        margin-bottom: 10px;
-      }
-      .zernio-card .field .k {
-        display: block;
-        color: var(--muted);
-        font-size: 0.62rem;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin-bottom: 2px;
-      }
-      .zernio-card .field .v {
-        font-size: 0.85rem;
-        font-variant-numeric: tabular-nums;
-      }
-      .zernio-card .actions {
-        display: flex;
-        gap: 8px;
-      }
-      .zernio-card .actions button {
-        flex: 1;
-      }
+      body::-webkit-scrollbar-thumb:hover { background: #3a4050; }
     }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <h1>📦 Staging + Zernio</h1>
-  <div class="sub">Buffer queue · Zernio queue · both live</div>
+  <header class="app-header">
+    <h1>📦 Staging + Zernio</h1>
+    <div class="sub">Buffer queue · Zernio queue · both live</div>
+  </header>
 
-  <div class="nav">
-    <button data-nav="dashboard" class="active">📊 Buffer</button>
-    <button data-nav="zernio">🎬 Zernio</button>
-    <button data-nav="log">📜 Sent Log</button>
-  </div>
+  <nav class="nav" role="tablist">
+    <button data-nav="dashboard" class="active" role="tab">📊 Buffer</button>
+    <button data-nav="zernio" role="tab">🎬 Zernio</button>
+    <button data-nav="log" role="tab">📜 Sent Log</button>
+  </nav>
 
   <!-- =================== BUFFER DASHBOARD =================== -->
   <section id="view-dashboard" class="view active">
@@ -492,63 +851,64 @@ async function loadDashboard() {
       return;
     }
 
-    if (isMobile()) {
-      $("dashboard-body").innerHTML = `
-        <div class="zernio-cards">
-          ${rows.map(r => `
-            <div class="zernio-card">
-              <div class="top">
-                <div class="name">${esc(r.label)}</div>
-                <span class="pill ${esc(r.mode)}">${esc(r.mode)}</span>
+    const cardsHtml = `
+      <div class="cards">
+        ${rows.map(r => `
+          <div class="card">
+            <div class="top">
+              <div class="name">${esc(r.label)}</div>
+              <span class="pill ${esc(r.mode)}">${esc(r.mode)}</span>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <span class="k">Platform</span>
+                <span class="v"><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></span>
               </div>
-              <div class="grid">
-                <div class="field">
-                  <span class="k">Platform</span>
-                  <span class="v"><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></span>
-                </div>
-                <div class="field">
-                  <span class="k">Pending</span>
-                  <span class="v">${r.pending}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Sent today</span>
-                  <span class="v">${r.sent_today}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Last drain</span>
-                  <span class="v">${esc(fmtDate(r.last_drain))}</span>
-                </div>
+              <div class="field">
+                <span class="k">Pending</span>
+                <span class="v">${r.pending}</span>
+              </div>
+              <div class="field">
+                <span class="k">Sent today</span>
+                <span class="v">${r.sent_today}</span>
+              </div>
+              <div class="field">
+                <span class="k">Last drain</span>
+                <span class="v">${esc(fmtDate(r.last_drain))}</span>
               </div>
             </div>
-          `).join("")}
-        </div>
-      `;
-    } else {
-      $("dashboard-body").innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    const tableHtml = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niche</th><th>Platform</th><th>Mode</th>
+              <th>Pending</th><th>Sent today</th><th>Last drain</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
               <tr>
-                <th>Niche</th><th>Platform</th><th>Mode</th>
-                <th>Pending</th><th>Sent today</th><th>Last drain</th>
+                <td>${esc(r.label)}</td>
+                <td><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></td>
+                <td><span class="pill ${esc(r.mode)}">${esc(r.mode)}</span></td>
+                <td>${r.pending}</td>
+                <td>${r.sent_today}</td>
+                <td>${esc(fmtDate(r.last_drain))}</td>
               </tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => `
-                <tr>
-                  <td>${esc(r.label)}</td>
-                  <td><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></td>
-                  <td><span class="pill ${esc(r.mode)}">${esc(r.mode)}</span></td>
-                  <td>${r.pending}</td>
-                  <td>${r.sent_today}</td>
-                  <td>${esc(fmtDate(r.last_drain))}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // Both variants always rendered. CSS decides which to show.
+    $("dashboard-body").innerHTML = cardsHtml + tableHtml;
   } catch (e) {
     toast("Dashboard error: " + e.message, true);
   }
@@ -597,6 +957,7 @@ async function loadZernio(force) {
       <div class="stat"><strong>${totalScheduled}</strong><span>Scheduled</span></div>
     `;
 
+    // Platform breakdown
     const byPlatform = {};
     rows.forEach(r => {
       const p = (r.platform || "unknown").toLowerCase();
@@ -636,83 +997,86 @@ async function loadZernio(force) {
       return;
     }
 
-    if (isMobile()) {
-      $("zernio-body").innerHTML = `
-        <div class="zernio-cards">
-          ${rows.map(r => {
-            const plat = (r.platform || "unknown").toLowerCase();
-            return `
-            <div class="zernio-card">
-              <div class="top">
-                <div class="name">${esc(r.label)}</div>
-                <span class="pill ${esc(plat)}">${esc(plat)}</span>
+    // ---- Cards (mobile) ----
+    const cardsHtml = `
+      <div class="cards">
+        ${rows.map(r => {
+          const plat = (r.platform || "unknown").toLowerCase();
+          return `
+          <div class="card">
+            <div class="top">
+              <div class="name">${esc(r.label)}</div>
+              <span class="pill ${esc(plat)}">${esc(plat)}</span>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <span class="k">Queue</span>
+                <span class="v">${esc(r.queue_name || "—")}</span>
               </div>
-              <div class="grid">
-                <div class="field">
-                  <span class="k">Queue</span>
-                  <span class="v">${esc(r.queue_name || "—")}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Free slots</span>
-                  <span class="v">${r.slots_free}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Scheduled</span>
-                  <span class="v">${r.scheduled_total}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Next slot</span>
-                  <span class="v">${esc(fmtDate(r.next_slot))}</span>
-                </div>
+              <div class="field">
+                <span class="k">Free slots</span>
+                <span class="v">${r.slots_free}</span>
               </div>
-              ${r.error ? `<div class="err" style="margin-bottom:8px">${esc(r.error)}</div>` : ""}
-              <div class="actions">
-                <button data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
+              <div class="field">
+                <span class="k">Scheduled</span>
+                <span class="v">${r.scheduled_total}</span>
               </div>
-            </div>`;
-          }).join("")}
-        </div>
-      `;
-    } else {
-      $("zernio-body").innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Niche</th>
-                <th>Platform</th>
-                <th>Queue</th>
-                <th>Free slots</th>
-                <th>Scheduled</th>
-                <th>Next slot</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => {
-                const plat = (r.platform || "unknown").toLowerCase();
-                return `
-                <tr>
-                  <td>
-                    <strong>${esc(r.label)}</strong>
-                    ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
-                  </td>
-                  <td><span class="pill ${esc(plat)}">${esc(plat)}</span></td>
-                  <td>${esc(r.queue_name || "—")}</td>
-                  <td>${r.slots_free}</td>
-                  <td>${r.scheduled_total}</td>
-                  <td>${esc(fmtDate(r.next_slot))}</td>
-                  <td>
-                    <button data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
-                  </td>
-                </tr>`;
-              }).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
+              <div class="field">
+                <span class="k">Next slot</span>
+                <span class="v">${esc(fmtDate(r.next_slot))}</span>
+              </div>
+            </div>
+            ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
+            <div class="actions">
+              <button class="btn" data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    `;
 
+    // ---- Table (tablet/desktop) ----
+    const tableHtml = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Niche</th>
+              <th>Platform</th>
+              <th>Queue</th>
+              <th>Free slots</th>
+              <th>Scheduled</th>
+              <th>Next slot</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => {
+              const plat = (r.platform || "unknown").toLowerCase();
+              return `
+              <tr>
+                <td>
+                  <strong>${esc(r.label)}</strong>
+                  ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
+                </td>
+                <td><span class="pill ${esc(plat)}">${esc(plat)}</span></td>
+                <td>${esc(r.queue_name || "—")}</td>
+                <td>${r.slots_free}</td>
+                <td>${r.scheduled_total}</td>
+                <td>${esc(fmtDate(r.next_slot))}</td>
+                <td>
+                  <button class="btn" data-zernio-posts="${esc(r.niche)}">📋 View posts</button>
+                </td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    $("zernio-body").innerHTML = cardsHtml + tableHtml;
+
+    // Bind both (only the visible one is clickable)
     $("zernio-body").querySelectorAll("[data-zernio-posts]").forEach(b => {
       b.addEventListener("click", () => loadZernioPosts(b.dataset.zernioPosts, b));
     });
@@ -729,7 +1093,7 @@ async function loadZernio(force) {
 }
 
 async function loadZernioPosts(niche, btn) {
-  const card = btn.closest(".zernio-card");
+  const card = btn.closest(".card");
   const row = btn.closest("tr");
   let label = niche;
   let platform = "";
@@ -762,57 +1126,59 @@ async function loadZernioPosts(niche, btn) {
       ? `<span class="pill ${esc(platform.trim().toLowerCase())}">${esc(platform.trim())}</span>`
       : "";
 
-    let postsHtml;
-    if (isMobile()) {
-      postsHtml = `
-        <div class="zernio-cards">
-          ${posts.map(p => `
-            <div class="zernio-card">
-              <div class="top">
-                <div class="name">${esc(p.title || "(untitled)")}</div>
-              </div>
-              <div class="grid">
-                <div class="field">
-                  <span class="k">Scheduled</span>
-                  <span class="v">${esc(fmtDate(p.scheduled_for))}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Status</span>
-                  <span class="v">${esc(p.status)}</span>
-                </div>
-              </div>
-              ${p.media_url
-                ? `<div class="actions"><a href="${esc(p.media_url)}" target="_blank"><button>▶ Open video</button></a></div>`
-                : ""}
+    const cardsHtml = `
+      <div class="cards">
+        ${posts.map(p => `
+          <div class="card">
+            <div class="top">
+              <div class="name">${esc(p.title || "(untitled)")}</div>
             </div>
-          `).join("")}
-        </div>
-      `;
-    } else {
-      postsHtml = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Title</th><th>Scheduled</th><th>Status</th><th>Video</th></tr>
-            </thead>
-            <tbody>
-              ${posts.map(p => `
-                <tr>
-                  <td class="title-cell" title="${esc(p.title)}">${esc(p.title || "(untitled)")}</td>
-                  <td>${esc(fmtDate(p.scheduled_for))}</td>
-                  <td>${esc(p.status)}</td>
-                  <td>
-                    ${p.media_url
-                      ? `<a href="${esc(p.media_url)}" target="_blank">open</a>`
-                      : "—"}
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
+            <div class="grid">
+              <div class="field">
+                <span class="k">Scheduled</span>
+                <span class="v">${esc(fmtDate(p.scheduled_for))}</span>
+              </div>
+              <div class="field">
+                <span class="k">Status</span>
+                <span class="v">${esc(p.status)}</span>
+              </div>
+            </div>
+            ${p.media_url
+              ? `<div class="actions">
+                   <a href="${esc(p.media_url)}" target="_blank" rel="noopener"
+                      style="flex:1;text-decoration:none">
+                     <button class="btn" style="width:100%">▶ Open video</button>
+                   </a>
+                 </div>`
+              : ""}
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    const tableHtml = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Title</th><th>Scheduled</th><th>Status</th><th>Video</th></tr>
+          </thead>
+          <tbody>
+            ${posts.map(p => `
+              <tr>
+                <td class="title-cell" title="${esc(p.title)}">${esc(p.title || "(untitled)")}</td>
+                <td>${esc(fmtDate(p.scheduled_for))}</td>
+                <td>${esc(p.status)}</td>
+                <td>
+                  ${p.media_url
+                    ? `<a href="${esc(p.media_url)}" target="_blank" rel="noopener">open</a>`
+                    : "—"}
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
 
     $("zernio-detail").innerHTML = `
       <h2 class="section-title" style="margin-top:24px">
@@ -820,7 +1186,7 @@ async function loadZernioPosts(niche, btn) {
         ${platformPill}
         <small>${total} scheduled · page ${pag.page || 1}/${pages} · ${elapsed}ms</small>
       </h2>
-      ${postsHtml}
+      ${cardsHtml + tableHtml}
     `;
   } catch (e) {
     $("zernio-detail").innerHTML =
@@ -867,72 +1233,56 @@ async function loadLog() {
       return;
     }
 
-    if (isMobile()) {
-      $("log-body").innerHTML = `
-        <div class="zernio-cards">
-          ${rows.map(r => `
-            <div class="zernio-card">
-              <div class="top">
-                <div class="name">${esc(r.title)}</div>
+    const cardsHtml = `
+      <div class="cards">
+        ${rows.map(r => `
+          <div class="card">
+            <div class="top">
+              <div class="name">${esc(r.title)}</div>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <span class="k">Niche</span>
+                <span class="v">${esc(r.niche)}</span>
               </div>
-              <div class="grid">
-                <div class="field">
-                  <span class="k">Niche</span>
-                  <span class="v">${esc(r.niche)}</span>
-                </div>
-                <div class="field">
-                  <span class="k">Sent at</span>
-                  <span class="v">${esc(fmtDate(r.sent_at))}</span>
-                </div>
+              <div class="field">
+                <span class="k">Sent at</span>
+                <span class="v">${esc(fmtDate(r.sent_at))}</span>
               </div>
             </div>
-          `).join("")}
-        </div>
-      `;
-    } else {
-      $("log-body").innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>ID</th><th>Niche</th><th>Title</th>
-                  <th>Sent at</th><th>Buffer id</th></tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => `
-                <tr>
-                  <td>${r.id}</td>
-                  <td>${esc(r.niche)}</td>
-                  <td class="title-cell">${esc(r.title)}</td>
-                  <td>${esc(fmtDate(r.sent_at))}</td>
-                  <td>${esc(r.buffer_post_id || "—")}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    const tableHtml = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Niche</th><th>Title</th>
+                <th>Sent at</th><th>Buffer id</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${r.id}</td>
+                <td>${esc(r.niche)}</td>
+                <td class="title-cell">${esc(r.title)}</td>
+                <td>${esc(fmtDate(r.sent_at))}</td>
+                <td>${esc(r.buffer_post_id || "—")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    $("log-body").innerHTML = cardsHtml + tableHtml;
   } catch (e) {
     $("log-body").innerHTML =
       `<div class="empty err">Error: ${esc(e.message)}</div>`;
   }
 }
-
-// -----------------------------------------------------
-// Re-render on orientation change
-// -----------------------------------------------------
-let lastMobile = isMobile();
-window.addEventListener("resize", () => {
-  const nowMobile = isMobile();
-  if (nowMobile !== lastMobile) {
-    lastMobile = nowMobile;
-    const active = document.querySelector(".view.active");
-    if (!active) return;
-    if (active.id === "view-dashboard") loadDashboard();
-    if (active.id === "view-zernio") loadZernio(false);
-    if (active.id === "view-log") loadLog();
-  }
-});
 
 // -----------------------------------------------------
 // Start
