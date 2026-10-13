@@ -19,7 +19,6 @@
       background: radial-gradient(1200px 600px at 10% -10%, #1a1f2e, var(--bg)) fixed;
       color: var(--text); min-height: 100vh;
       padding: 16px;
-      padding-bottom: calc(96px + env(safe-area-inset-bottom));
       overflow-x: hidden;
     }
     .app { max-width: 1200px; margin: 0 auto; }
@@ -169,11 +168,11 @@
       font-weight: normal;
     }
 
-    /* ------- Toast: sits above bottom bar ------- */
+    /* ------- Toast ------- */
     .toast {
       position: fixed;
       left: 16px; right: 16px;
-      bottom: calc(88px + env(safe-area-inset-bottom));
+      bottom: 16px;
       background: var(--panel2); border: 1px solid var(--accent);
       color: var(--text); padding: 12px 16px; border-radius: 10px;
       font-size: 0.85rem; z-index: 999;
@@ -283,27 +282,6 @@
       margin-right: 2px;
     }
 
-    /* ------- Mobile bottom action bar ------- */
-    .mobile-bar {
-      display: none;
-      position: fixed;
-      left: 0; right: 0;
-      bottom: 0;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      background: rgba(15,17,21,0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      z-index: 900;
-      gap: 8px;
-      align-items: center;
-    }
-    .mobile-bar button {
-      flex: 1;
-      padding: 12px;
-      font-weight: 600;
-    }
-
     /* ================================================
        TABLET (>= 640px)
        ================================================ */
@@ -325,15 +303,13 @@
         max-width: 400px;
         text-align: left;
       }
-      .mobile-bar { display: none !important; }
-      body { padding-bottom: 20px; }
     }
 
     /* ================================================
        DESKTOP (>= 900px)
        ================================================ */
     @media (min-width: 900px) {
-      body { padding: 24px; padding-bottom: 24px; }
+      body { padding: 24px; }
       h1 { font-size: 1.6rem; }
       .nav { width: fit-content; }
       .stat strong { font-size: 1.5rem; }
@@ -343,11 +319,8 @@
       .title-cell { max-width: 380px; }
     }
 
-    /* ------- Mobile-only: stacked card view for Zernio on phones ------- */
+    /* ------- Mobile-only: stacked card view ------- */
     @media (max-width: 639px) {
-      .mobile-bar { display: flex; }
-
-      /* Zernio table becomes a list of stacked cards */
       .zernio-cards { display: flex; flex-direction: column; gap: 10px; }
       .zernio-card {
         background: var(--panel);
@@ -444,12 +417,6 @@
 
 </div>
 
-<!-- =================== Mobile bottom bar =================== -->
-<div class="mobile-bar" id="mobile-bar">
-  <button id="mobile-refresh">🔄 Refresh</button>
-  <button id="mobile-top">⬆ Top</button>
-</div>
-
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -526,7 +493,6 @@ async function loadDashboard() {
     }
 
     if (isMobile()) {
-      // Stacked cards on mobile
       $("dashboard-body").innerHTML = `
         <div class="zernio-cards">
           ${rows.map(r => `
@@ -631,7 +597,6 @@ async function loadZernio(force) {
       <div class="stat"><strong>${totalScheduled}</strong><span>Scheduled</span></div>
     `;
 
-    // Platform breakdown
     const byPlatform = {};
     rows.forEach(r => {
       const p = (r.platform || "unknown").toLowerCase();
@@ -672,7 +637,6 @@ async function loadZernio(force) {
     }
 
     if (isMobile()) {
-      // Stacked cards on mobile
       $("zernio-body").innerHTML = `
         <div class="zernio-cards">
           ${rows.map(r => {
@@ -955,29 +919,7 @@ async function loadLog() {
 }
 
 // -----------------------------------------------------
-// Mobile bottom bar
-// -----------------------------------------------------
-document.getElementById("mobile-refresh").addEventListener("click", () => {
-  // Refresh whichever tab is currently active
-  const active = document.querySelector(".view.active");
-  if (!active) return;
-  if (active.id === "view-zernio") {
-    $("zernio-refresh").click();
-  } else if (active.id === "view-dashboard") {
-    loadDashboard();
-    toast("Buffer refreshed");
-  } else if (active.id === "view-log") {
-    loadLog();
-    toast("Log refreshed");
-  }
-});
-
-document.getElementById("mobile-top").addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-// -----------------------------------------------------
-// Re-render on orientation change (mobile/desktop layout)
+// Re-render on orientation change
 // -----------------------------------------------------
 let lastMobile = isMobile();
 window.addEventListener("resize", () => {
