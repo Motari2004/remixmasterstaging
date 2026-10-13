@@ -1,11 +1,9 @@
 """
 Staging Viewer — read-only dashboard.
 
-Two panels:
-  - Buffer niches (from Neon queue)
-  - Zernio niches (live from Zernio's API, cached + warmed)
-
-Serves a single-page UI at /. Does NOT publish or write to Buffer.
+Reads niche configs from staging-service/settings.json
+(or env var SETTINGS_JSON on Vercel).
+Reads staging data from Neon.
 """
 import os
 import sys
@@ -25,49 +23,89 @@ import zernio_client
 
 
 BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+SETTINGS_FILE = os.path.join(BASE_DIR, "settings.json")
 CONFIG_FILE   = os.path.join(BASE_DIR, "config.json")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 
-def _load_config():
-    try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f) or {}
-    except Exception as e:
-        print(f"❌ config.json: {e}")
-        return {}
+# ------------------------------------------------------------------
+# Settings loader — env var on Vercel, file locally
+# ------------------------------------------------------------------
+def _load_settings():
+    # 1. Env var (Vercel)
+    raw = os.environ.get("SETTINGS_JSON")
+    if raw:
+        try:
+            return json.loads(raw)
+        except Exception as e:
+            print(f"⚠️  SETTINGS_JSON is not valid JSON: {e}")
+
+    # 2. settings.json
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"⚠️  settings.json unreadable: {e}")
+
+    # 3. Fallback: legacy config.json (only neon url + port)
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            return {"NICHES": {}, **cfg}
+        except Exception:
+            pass
+
+    return {"NICHES": {}}
 
 
-CONFIG  = _load_config()
-DB_URL  = CONFIG.get("neon_database_url", "")
-PORT    = int(CONFIG.get("port", 5050))
-
-RM_SETTINGS = CONFIG.get("remixmaster_settings",
-                         r"C:\Users\PC\Desktop\remixmaster\settings.json")
+SETTINGS = _load_settings()
+NICHES   = SETTINGS.get("NICHES", {}) or {}
 
 
-def _load_rm_settings():
-    try:
-        with open(RM_SETTINGS, "r", encoding="utf-8") as f:
-            return json.load(f) or {}
-    except Exception as e:
-        print(f"⚠️  remixmaster settings: {e}")
-        return {}
+def _db_url():
+    return (
+        os.environ.get("NEON_DATABASE_URL")
+        or os.environ.get("DATABASE_URL")
+        or SETTINGS.get("NEON_DATABASE_URL")
+        or ""
+    )
+
+
+DB_URL = _db_url()
+PORT   = int(os.environ.get("PORT", SETTINGS.get("PORT", 5050)))
 
 
 def _buffer_niches():
-    s = _load_rm_settings()
-    niches = s.get("NICHES", {})
-    if not isinstance(niches, dict):
-        return {}
     return {
-        k: v for k, v in niches.items()
+        k: v for k, v in NICHES.items()
         if isinstance(v, dict) and (v.get("publisher") or "").lower() == "buffer"
     }
 
 
+def _zernio_configs():
+    out = {}
+    for k, v in NICHES.items():
+        if not isinstance(v, dict):
+            continue
+        if (v.get("publisher") or "").lower() != "zernio":
+            continue
+        if not v.get("zernio_api_key") or not v.get("zernio_profile_id"):
+            continue
+        out[k] = {
+            "label":             v.get("label", k),
+            "zernio_api_key":    v["zernio_api_key"],
+            "zernio_account_id": v.get("zernio_account_id", ""),
+            "zernio_profile_id": v["zernio_profile_id"],
+            "platform":          (v.get("platform") or "youtube").lower(),
+            "channel_link":      v.get("channel_link", ""),
+        }
+    return out
+
+
 # ------------------------------------------------------------------
-# DB
+# Neon
 # ------------------------------------------------------------------
 _lock = threading.Lock()
 _conn = None
@@ -212,34 +250,29 @@ def api_log():
     return jsonify(success=True, rows=q_log())
 
 
-# ---- Zernio panel (cached + parallel) ----
+# ---- Zernio ----
 @app.route("/api/zernio/niches")
 def api_zernio_niches():
-    """
-    Return one summary per Zernio niche.
-
-    ?force=1 forces a fresh fetch (synchronous, slower).
-    Otherwise: cached values return instantly; stale ones refresh in background.
-    """
+    zernio_client.set_niches(_zernio_configs())
     force = request.args.get("force") in ("1", "true", "yes")
     try:
         summaries = zernio_client.all_summaries(force=force)
     except Exception as e:
         return jsonify(success=False, error=str(e)), 500
-
     rows = sorted(summaries.values(), key=lambda r: r.get("label", "").lower())
     return jsonify(success=True, rows=rows, cached=not force)
 
 
 @app.route("/api/zernio/posts/<niche>")
 def api_zernio_posts(niche):
+    zernio_client.set_niches(_zernio_configs())
     niches = zernio_client.list_niches()
     cfg = niches.get(niche)
     if not cfg:
         return jsonify(success=False, error="unknown niche"), 404
-    page   = int(request.args.get("page", 1))
-    limit  = int(request.args.get("limit", 50))
-    force  = request.args.get("force") in ("1", "true", "yes")
+    page  = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 50))
+    force = request.args.get("force") in ("1", "true", "yes")
     try:
         result = zernio_client.scheduled_posts_for_niche(
             niche, cfg, page=page, limit=limit, force=force
@@ -251,12 +284,9 @@ def api_zernio_posts(niche):
 
 @app.route("/api/zernio/refresh", methods=["POST"])
 def api_zernio_refresh():
-    """
-    Force-refresh the entire Zernio summary in the background.
-    Returns immediately; caller should re-fetch /niches in ~1-2s.
-    """
     try:
         def _run():
+            zernio_client.set_niches(_zernio_configs())
             zernio_client.all_summaries(force=True)
         threading.Thread(target=_run, daemon=True).start()
         return jsonify(success=True, message="refresh started")
@@ -269,24 +299,27 @@ def api_zernio_stats():
     return jsonify(success=True, **zernio_client.cache_stats())
 
 
+# ------------------------------------------------------------------
+# Boot (local dev only — Vercel uses `app` directly)
+# ------------------------------------------------------------------
 if __name__ == "__main__":
     print("=" * 60)
     print("👁️  Staging Viewer")
     print("=" * 60)
     print(f"🗄️  Neon URL:        {DB_URL[:50]}…")
     print(f"🌐 Port:            {PORT}")
+    print(f"📄 Settings:        "
+          f"{'env var SETTINGS_JSON' if os.environ.get('SETTINGS_JSON') else SETTINGS_FILE}")
     try:
         init_schema()
         print("✅ Schema ready")
     except Exception as e:
         print(f"❌ Schema init failed: {e}")
-    zernio_n = len(zernio_client.list_niches())
-    print(f"🎬 Zernio niches:   {zernio_n}  (from config.json)")
-    print(f"🅱️  Buffer niches:   {len(_buffer_niches())}  (from remixmaster)")
-
-    # Warm the cache in the background
+    zc = _zernio_configs()
+    zernio_client.set_niches(zc)
+    print(f"🎬 Zernio niches:   {len(zc)}")
+    print(f"🅱️  Buffer niches:   {len(_buffer_niches())}")
     zernio_client.start_warmer()
-
     print(f"🌍 Open:            http://localhost:{PORT}")
     print("=" * 60)
     app.run(host="0.0.0.0", port=PORT, debug=False, threaded=True)
