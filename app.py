@@ -250,7 +250,7 @@ def _buffer_gql(api_key, query, variables=None):
     return payload.get("data") or {}
 
 
-def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
+def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform="instagram"):
     first_line = (title or "").strip()
     rest = (caption or "").strip()
     text = first_line
@@ -271,6 +271,28 @@ def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
       }
     }
     """
+    # ---- platform-specific metadata ----
+    # Buffer requires certain fields depending on the channel's platform.
+    # Instagram needs `type` and `shouldShareToFeed`. Facebook needs `type`.
+    # TikTok/YouTube accept the post without extra metadata in this shape.
+    plat = (platform or "").lower()
+    metadata = {}
+    if plat == "instagram":
+        metadata = {
+            "instagram": {
+                "type": "reel",
+                "shouldShareToFeed": True,
+                "isAiGenerated": True,
+            }
+        }
+    elif plat == "facebook":
+        metadata = {
+            "facebook": {
+                "type": "reel",
+            }
+        }
+    # tiktok / youtube / others: no metadata block
+
     variables = {
         "input": {
             "channelId": channel_id,
@@ -280,6 +302,8 @@ def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
             "assets": [{"video": {"url": video_url}}],
         }
     }
+    if metadata:
+        variables["input"]["metadata"] = metadata
     data = _buffer_gql(api_key, query, variables)
     payload = data.get("createPost") or {}
     if payload.get("message"):
@@ -373,6 +397,7 @@ def _drain_niche(niche_key, cfg):
                 row["video_url"],
                 row["title"],
                 row["caption"],
+                platform=cfg.get("platform", "instagram"),
             )
             _mark_sent(row["id"], bid)
             result["pushed"] += 1
