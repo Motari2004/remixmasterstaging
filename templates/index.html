@@ -11,13 +11,11 @@
        1. DESIGN TOKENS
        ===================================================== */
     :root {
-      /* Colors */
       --bg: #0f1115;
       --panel: #171a21;
       --panel2: #1e222b;
       --panel-hover: #232833;
       --border: #2a2f3a;
-      --border-soft: rgba(255,255,255,0.04);
       --text: #e6e9ef;
       --muted: #8b93a7;
       --muted-2: #6b7280;
@@ -30,21 +28,21 @@
       --danger: #ef4444;
       --danger-soft: #fca5a5;
 
-      /* Platform colors */
-      --c-youtube:   #fca5a5;
-      --c-youtube-b: rgba(239,68,68,0.14);
-      --c-tiktok:    #67e8f9;
-      --c-tiktok-b:  rgba(0,212,255,0.14);
-      --c-instagram: #a78bfa;
-      --c-instagram-b: rgba(124,92,255,0.14);
-      --c-facebook:  #93c5fd;
-      --c-facebook-b: rgba(59,130,246,0.14);
+      /* Platform brand colors */
+      --c-youtube:   #ff0000;
+      --c-youtube-b: rgba(255,0,0,0.12);
+      --c-tiktok:    #ffffff;
+      --c-tiktok-b:  rgba(255,255,255,0.08);
+      --c-instagram: #e4405f;
+      --c-instagram-b: rgba(228,64,95,0.12);
+      --c-facebook:  #1877f2;
+      --c-facebook-b: rgba(24,119,242,0.12);
       --c-zernio:    #c4b5fd;
       --c-zernio-b:  rgba(139,92,246,0.14);
       --c-unknown:   #8b93a7;
       --c-unknown-b: rgba(139,148,167,0.14);
 
-      /* Spacing scale */
+      /* Spacing */
       --s-1: 4px;
       --s-2: 8px;
       --s-3: 12px;
@@ -74,10 +72,7 @@
     /* =====================================================
        2. RESET
        ===================================================== */
-    *,
-    *::before,
-    *::after { box-sizing: border-box; }
-
+    *, *::before, *::after { box-sizing: border-box; }
     * { margin: 0; padding: 0; }
 
     html {
@@ -103,7 +98,6 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
     }
 
     /* =====================================================
@@ -132,16 +126,11 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      word-break: break-word;
     }
-
-    .sub {
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
+    .sub { color: var(--muted); font-size: 0.82rem; }
 
     /* =====================================================
-       4. NAVIGATION (tabs)
+       4. NAV
        ===================================================== */
     .nav {
       display: flex;
@@ -174,10 +163,9 @@
       flex-shrink: 0;
       min-height: 40px;
       scroll-snap-align: start;
-      transition:
-        color var(--dur-fast) var(--ease),
-        background var(--dur-fast) var(--ease),
-        transform var(--dur-fast) var(--ease);
+      transition: color var(--dur-fast) var(--ease),
+                  background var(--dur-fast) var(--ease),
+                  transform var(--dur-fast) var(--ease);
     }
     .nav button:hover { color: var(--text); }
     .nav button:active { transform: scale(0.97); }
@@ -227,9 +215,7 @@
       border-radius: var(--r-lg);
       padding: 14px 16px;
       min-width: 0;
-      transition: border-color var(--dur) var(--ease);
     }
-    .stat:hover { border-color: var(--border); }
 
     .stat strong {
       display: block;
@@ -252,8 +238,89 @@
       word-break: break-word;
     }
 
+    /* Toggle button (styled like a stat card) */
+    .stat.toggle-card {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 14px;
+      transition: border-color var(--dur) var(--ease),
+                  background var(--dur) var(--ease);
+      user-select: none;
+    }
+    .stat.toggle-card:hover { border-color: var(--accent); }
+    .stat.toggle-card:active { transform: scale(0.98); }
+
+    .toggle-card .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .toggle-card .toggle-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .toggle-card .toggle-state {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent2);
+      transition: color var(--dur) var(--ease);
+    }
+    .toggle-card[data-on="true"] .toggle-state { color: var(--ok-soft); }
+
+    /* iOS-style switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      transition: background var(--dur) var(--ease),
+                  border-color var(--dur) var(--ease);
+      border-radius: 999px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: var(--muted);
+      transition: transform var(--dur) var(--ease),
+                  background var(--dur) var(--ease);
+      border-radius: 50%;
+    }
+    .switch input:checked + .slider {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-color: transparent;
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(20px);
+      background: #fff;
+    }
+
     /* =====================================================
-       7. TABLES (desktop + tablet)
+       7. TABLES
        ===================================================== */
     .table-wrap {
       width: 100%;
@@ -272,16 +339,12 @@
       background: var(--border);
       border-radius: 4px;
     }
-    .table-wrap::-webkit-scrollbar-thumb:hover {
-      background: #3a4050;
-    }
 
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 640px;
     }
-
     th, td {
       text-align: left;
       padding: 12px 16px;
@@ -290,7 +353,6 @@
       white-space: nowrap;
       vertical-align: middle;
     }
-
     th {
       position: sticky;
       top: 0;
@@ -302,10 +364,7 @@
       text-transform: uppercase;
       letter-spacing: 0.9px;
     }
-
-    tbody tr {
-      transition: background var(--dur-fast) var(--ease);
-    }
+    tbody tr { transition: background var(--dur-fast) var(--ease); }
     tbody tr:hover td { background: var(--panel2); }
     tbody tr:last-child td { border-bottom: 0; }
 
@@ -317,10 +376,12 @@
     }
 
     /* =====================================================
-       8. PILLS
+       8. PLATFORM PILLS (with SVG icons)
        ===================================================== */
     .pill {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       padding: 3px 10px;
       border-radius: 999px;
       font-size: 0.65rem;
@@ -330,32 +391,48 @@
       white-space: nowrap;
       line-height: 1.4;
       border: 1px solid transparent;
+      transition: background var(--dur) var(--ease),
+                  border-color var(--dur) var(--ease),
+                  color var(--dur) var(--ease);
     }
+    .pill .pi {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .pill .pi path { fill: currentColor; }
+
     .pill.direct  { background: rgba(34,197,94,0.14);  color: var(--ok-soft);
                     border-color: rgba(34,197,94,0.25); }
     .pill.staging { background: rgba(245,158,11,0.14); color: var(--warn-soft);
                     border-color: rgba(245,158,11,0.25); }
-    .pill.youtube { background: var(--c-youtube-b);   color: var(--c-youtube);
-                    border-color: rgba(239,68,68,0.25); }
-    .pill.tiktok  { background: var(--c-tiktok-b);    color: var(--c-tiktok);
-                    border-color: rgba(0,212,255,0.25); }
+
+    .pill.youtube   { background: var(--c-youtube-b);   color: var(--c-youtube);
+                      border-color: rgba(255,0,0,0.25); }
+    .pill.tiktok    { background: var(--c-tiktok-b);    color: var(--c-tiktok);
+                      border-color: rgba(255,255,255,0.18); }
     .pill.instagram,
-    .pill.insta   { background: var(--c-instagram-b); color: var(--c-instagram);
-                    border-color: rgba(124,92,255,0.25); }
-    .pill.facebook{ background: var(--c-facebook-b);  color: var(--c-facebook);
-                    border-color: rgba(59,130,246,0.25); }
-    .pill.zernio  { background: var(--c-zernio-b);    color: var(--c-zernio);
-                    border-color: rgba(139,92,246,0.25); }
-    .pill.unknown { background: var(--c-unknown-b);   color: var(--c-unknown);
-                    border-color: rgba(139,148,167,0.25); }
+    .pill.insta     { background: var(--c-instagram-b); color: var(--c-instagram);
+                      border-color: rgba(228,64,95,0.28); }
+    .pill.facebook  { background: var(--c-facebook-b);  color: var(--c-facebook);
+                      border-color: rgba(24,119,242,0.28); }
+    .pill.zernio    { background: var(--c-zernio-b);    color: var(--c-zernio);
+                      border-color: rgba(139,92,246,0.25); }
+    .pill.unknown   { background: var(--c-unknown-b);   color: var(--c-unknown);
+                      border-color: rgba(139,148,167,0.25); }
+
+    /* When icons are OFF — hide the SVG */
+    body[data-buffer-icons="off"] #view-dashboard .pill .pi,
+    body[data-zernio-icons="off"] #view-zernio .pill .pi {
+      display: none;
+    }
 
     /* =====================================================
        9. BUTTONS
        ===================================================== */
-    button {
-      font-family: inherit;
-      cursor: pointer;
-    }
+    button { font-family: inherit; cursor: pointer; }
 
     .btn {
       appearance: none;
@@ -367,10 +444,9 @@
       font-size: 0.82rem;
       font-weight: 500;
       min-height: 38px;
-      transition:
-        background var(--dur) var(--ease),
-        border-color var(--dur) var(--ease),
-        transform var(--dur-fast) var(--ease);
+      transition: background var(--dur) var(--ease),
+                  border-color var(--dur) var(--ease),
+                  transform var(--dur-fast) var(--ease);
     }
     .btn:hover {
       background: var(--panel-hover);
@@ -379,7 +455,7 @@
     .btn:active { transform: scale(0.97); }
 
     /* =====================================================
-       10. EMPTY / ERROR STATES
+       10. EMPTY / ERROR
        ===================================================== */
     .empty {
       padding: 40px 24px;
@@ -391,15 +467,10 @@
       font-size: 0.9rem;
     }
     .empty.err { border-color: rgba(239,68,68,0.35); color: var(--danger-soft); }
-
-    .err {
-      color: var(--danger-soft);
-      font-size: 0.74rem;
-      margin-top: 2px;
-    }
+    .err { color: var(--danger-soft); font-size: 0.74rem; margin-top: 2px; }
 
     /* =====================================================
-       11. ZERNIO PANEL HEADER
+       11. ZERNIO HEADER
        ===================================================== */
     .zernio-header {
       display: flex;
@@ -407,16 +478,13 @@
       gap: var(--s-3);
       margin-bottom: var(--s-4);
     }
-
     .zernio-title {
       display: flex;
       align-items: center;
       gap: var(--s-2);
       font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: -0.005em;
     }
-
     .zernio-title .badge {
       font-size: 0.62rem;
       font-weight: 700;
@@ -428,14 +496,12 @@
       color: var(--c-zernio);
       border: 1px solid rgba(139,92,246,0.28);
     }
-
     .zernio-actions {
       display: flex;
       align-items: center;
       gap: var(--s-2);
       flex-wrap: wrap;
     }
-
     .zernio-cache {
       font-size: 0.74rem;
       color: var(--muted);
@@ -459,11 +525,8 @@
       gap: var(--s-2);
       padding: 10px 16px;
       border-radius: var(--r-md);
-      background: linear-gradient(
-        135deg,
-        rgba(124,92,255,0.20),
-        rgba(0,212,255,0.20)
-      );
+      background: linear-gradient(135deg,
+        rgba(124,92,255,0.20), rgba(0,212,255,0.20));
       border: 1px solid var(--border);
       color: var(--text);
       font-family: inherit;
@@ -471,19 +534,15 @@
       font-weight: 600;
       min-height: 40px;
       flex-shrink: 0;
-      transition:
-        background var(--dur) var(--ease),
-        border-color var(--dur) var(--ease),
-        transform var(--dur-fast) var(--ease),
-        box-shadow var(--dur) var(--ease);
+      transition: background var(--dur) var(--ease),
+                  border-color var(--dur) var(--ease),
+                  transform var(--dur-fast) var(--ease),
+                  box-shadow var(--dur) var(--ease);
     }
     .refresh-btn:hover {
       border-color: var(--accent);
-      background: linear-gradient(
-        135deg,
-        rgba(124,92,255,0.30),
-        rgba(0,212,255,0.30)
-      );
+      background: linear-gradient(135deg,
+        rgba(124,92,255,0.30), rgba(0,212,255,0.30));
       box-shadow: 0 4px 14px -4px rgba(124,92,255,0.4);
     }
     .refresh-btn:active { transform: scale(0.97); }
@@ -497,19 +556,17 @@
       display: inline-block;
       font-size: 0.95rem;
       line-height: 1;
-      transition: transform var(--dur) var(--ease);
     }
     .refresh-btn.spinning .icon {
       animation: spin 0.8s linear infinite;
     }
-
     @keyframes spin {
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
 
     /* =====================================================
-       12. PLATFORM BREAKDOWN STRIP
+       12. PLATFORM BREAKDOWN
        ===================================================== */
     .platform-breakdown {
       display: flex;
@@ -535,16 +592,12 @@
       flex-direction: column;
       gap: var(--s-3);
     }
-
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 14px;
-      transition: border-color var(--dur) var(--ease);
     }
-    .card:hover { border-color: #343b48; }
-
     .card .top {
       display: flex;
       justify-content: space-between;
@@ -559,7 +612,6 @@
       min-width: 0;
       word-break: break-word;
     }
-
     .card .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -582,7 +634,6 @@
       font-variant-numeric: tabular-nums;
       word-break: break-word;
     }
-
     .card .actions {
       display: flex;
       gap: var(--s-2);
@@ -602,7 +653,6 @@
       font-size: 1rem;
       font-weight: 700;
       margin-bottom: var(--s-3);
-      letter-spacing: -0.005em;
     }
     .section-title small {
       color: var(--muted);
@@ -626,13 +676,10 @@
       border-radius: var(--r-lg);
       font-size: 0.85rem;
       text-align: center;
-      box-shadow:
-        0 12px 40px -8px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(124,92,255,0.15);
+      box-shadow: 0 12px 40px -8px rgba(0,0,0,0.6);
       animation: toastIn var(--dur-slow) var(--ease-out);
     }
     .toast.err { border-color: var(--danger); }
-
     @keyframes toastIn {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -646,7 +693,6 @@
       h1 { font-size: 1.5rem; }
       .stats {
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: var(--s-3);
       }
       .stat { padding: 16px 18px; }
       .stat strong { font-size: 1.5rem; }
@@ -679,33 +725,26 @@
       .nav { width: fit-content; }
       table { min-width: 0; }
       .title-cell { max-width: 400px; }
-      .app { gap: var(--s-5); }
     }
 
     /* =====================================================
-       18. RESPONSIVE — MOBILE (cards instead of tables)
+       18. MOBILE CARDS vs DESKTOP TABLES
        ===================================================== */
     @media (max-width: 639px) {
       .table-wrap { display: none !important; }
-      /* Cards are rendered server-side into #...-body */
       .cards { display: flex; }
     }
-
-    /* Hide cards on tablet/desktop since we render tables there */
     @media (min-width: 640px) {
       .cards { display: none !important; }
     }
 
     /* =====================================================
-       19. FOCUS STATES (accessibility)
+       19. FOCUS
        ===================================================== */
     :focus-visible {
       outline: 2px solid var(--accent2);
       outline-offset: 2px;
       border-radius: var(--r-sm);
-    }
-    button:focus-visible {
-      outline-offset: 2px;
     }
 
     /* =====================================================
@@ -723,7 +762,7 @@
     }
   </style>
 </head>
-<body>
+<body data-buffer-icons="on" data-zernio-icons="on">
 <div class="app">
 
   <header class="app-header">
@@ -745,13 +784,11 @@
 
   <!-- =================== ZERNIO =================== -->
   <section id="view-zernio" class="view">
-
     <div class="zernio-header">
       <div class="zernio-title">
         🎬 Zernio Queue
         <span class="badge">live</span>
       </div>
-
       <div class="zernio-actions">
         <span class="zernio-cache" id="zernio-cache-info">—</span>
         <span class="refresh-status" id="zernio-refresh-status"></span>
@@ -761,7 +798,6 @@
         </button>
       </div>
     </div>
-
     <div class="stats" id="zernio-stats"></div>
     <div class="platform-breakdown" id="zernio-platform-breakdown" style="display:none;"></div>
     <div id="zernio-body"></div>
@@ -779,6 +815,91 @@
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
+
+// -----------------------------------------------------
+// Brand SVG icons (inline, ~300 bytes each)
+// -----------------------------------------------------
+const ICONS = {
+  youtube:
+    '<svg class="pi" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/>' +
+    '</svg>',
+  tiktok:
+    '<svg class="pi" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M12.5 2h3.4c.2 1.6 1 3 2.4 3.8.8.5 1.7.7 2.7.8v3.3c-1.7 0-3.3-.4-4.8-1.3v7.1c0 1.6-.4 3.1-1.3 4.4a6.4 6.4 0 0 1-5.4 2.8c-3.5 0-6.4-2.9-6.4-6.4 0-3.6 2.9-6.5 6.4-6.5.4 0 .7 0 1.1.1v3.5c-.3-.1-.7-.2-1.1-.2-1.7 0-3.1 1.4-3.1 3.1s1.4 3.1 3.1 3.1c1.7 0 3-1.3 3-3V2z"/>' +
+    '</svg>',
+  instagram:
+    '<svg class="pi" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M12 2.2c3.2 0 3.6 0 4.8.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.2.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.2.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-1.2-.1-1.8-.3-2.2-.4a3.8 3.8 0 0 1-1.4-.9c-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1.1.1-1.7.2-2.1.4-.5.2-.9.4-1.3.8-.4.4-.6.8-.8 1.3-.2.4-.3 1-.4 2.1-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1.1.2 1.7.4 2.1.2.5.4.9.8 1.3.4.4.8.6 1.3.8.4.2 1 .3 2.1.4 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1.1-.1 1.7-.2 2.1-.4.5-.2.9-.4 1.3-.8.4-.4.6-.8.8-1.3.2-.4.3-1 .4-2.1.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1.1-.2-1.7-.4-2.1a3.4 3.4 0 0 0-.8-1.3 3.4 3.4 0 0 0-1.3-.8c-.4-.2-1-.3-2.1-.4-1.2-.1-1.6-.1-4.7-.1zm0 3.1a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 8.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zm6.4-8.4a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/>' +
+    '</svg>',
+  facebook:
+    '<svg class="pi" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M22 12.1C22 6.5 17.5 2 12 2S2 6.5 2 12.1c0 5 3.7 9.2 8.4 9.9v-7H7.9v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.3 0-1.7.8-1.7 1.6v2h2.8l-.4 2.9h-2.3v7c4.7-.7 8.5-4.9 8.5-9.9z"/>' +
+    '</svg>',
+  unknown:
+    '<svg class="pi" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 15.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm1.6-5.1c-.4.3-.7.6-.7 1.1v.5h-1.8v-.6c0-1 .5-1.7 1.3-2.3.6-.4.9-.8.9-1.4 0-.9-.7-1.5-1.6-1.5-.9 0-1.5.5-1.7 1.3l-1.8-.5C8.6 7.6 9.8 6.6 11.7 6.6c1.9 0 3.3 1.1 3.3 2.8 0 1.2-.6 2-1.4 2.6z"/>' +
+    '</svg>',
+};
+
+const LABEL = {
+  youtube:   "youtube",
+  tiktok:    "tiktok",
+  instagram: "instagram",
+  insta:     "instagram",
+  facebook:  "facebook",
+  unknown:   "unknown",
+};
+
+// -----------------------------------------------------
+// Toggle state
+// -----------------------------------------------------
+function loadPrefs() {
+  try {
+    const b = localStorage.getItem("bufferIcons");
+    const z = localStorage.getItem("zernioIcons");
+    if (b === "off" || b === "on")
+      document.body.dataset.bufferIcons = b;
+    if (z === "off" || z === "on")
+      document.body.dataset.zernioIcons = z;
+  } catch (e) {}
+}
+
+function setPref(scope, value) {
+  try {
+    if (scope === "buffer") localStorage.setItem("bufferIcons", value);
+    if (scope === "zernio") localStorage.setItem("zernioIcons", value);
+  } catch (e) {}
+  if (scope === "buffer")
+    document.body.dataset.bufferIcons = value;
+  if (scope === "zernio")
+    document.body.dataset.zernioIcons = value;
+}
+
+loadPrefs();
+
+// -----------------------------------------------------
+// Helpers
+// -----------------------------------------------------
+function iconFor(platform) {
+  const p = String(platform || "").toLowerCase();
+  if (p === "youtube") return ICONS.youtube;
+  if (p === "tiktok") return ICONS.tiktok;
+  if (p === "instagram" || p === "insta") return ICONS.instagram;
+  if (p === "facebook") return ICONS.facebook;
+  return ICONS.unknown;
+}
+
+function labelFor(platform) {
+  const p = String(platform || "").toLowerCase();
+  return LABEL[p] || p || "—";
+}
+
+function platformPill(platform) {
+  const p = String(platform || "unknown").toLowerCase();
+  const cls = ["youtube","tiktok","instagram","facebook"].includes(p) ? p : "unknown";
+  return `<span class="pill ${cls}">${iconFor(p)}${labelFor(p)}</span>`;
+}
 
 function showView(name) {
   document.querySelectorAll(".view").forEach(v =>
@@ -824,8 +945,38 @@ function fmtDate(iso) {
   } catch (e) { return iso; }
 }
 
-function isMobile() {
-  return window.matchMedia("(max-width: 639px)").matches;
+function toggleCardHtml(scope, label, current) {
+  const on = current === "on";
+  return `
+    <div class="stat toggle-card" data-toggle-scope="${scope}" data-on="${on}">
+      <div class="toggle-row">
+        <div>
+          <span class="toggle-label">${label}</span>
+          <div class="toggle-state">${on ? "icons ON" : "icons OFF"}</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" ${on ? "checked" : ""} data-toggle-input="${scope}">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>`;
+}
+
+function wireToggles() {
+  document.querySelectorAll("[data-toggle-input]").forEach(input => {
+    input.addEventListener("change", (e) => {
+      const scope = e.target.dataset.toggleInput;
+      const value = e.target.checked ? "on" : "off";
+      setPref(scope, value);
+      // Update the label text without full re-render
+      const card = e.target.closest(".toggle-card");
+      if (card) {
+        card.dataset.on = (value === "on").toString();
+        const stateEl = card.querySelector(".toggle-state");
+        if (stateEl) stateEl.textContent = value === "on" ? "icons ON" : "icons OFF";
+      }
+    });
+  });
 }
 
 // -----------------------------------------------------
@@ -839,11 +990,15 @@ async function loadDashboard() {
     const totalPending = rows.reduce((s, r) => s + (r.pending || 0), 0);
     const totalSent    = rows.reduce((s, r) => s + (r.sent_today || 0), 0);
 
+    const current = document.body.dataset.bufferIcons || "on";
+
     $("stats").innerHTML = `
       <div class="stat"><strong>${rows.length}</strong><span>Buffer channels</span></div>
       <div class="stat"><strong>${totalPending}</strong><span>Staged pending</span></div>
       <div class="stat"><strong>${totalSent}</strong><span>Sent today</span></div>
+      ${toggleCardHtml("buffer", "Platform icons", current)}
     `;
+    wireToggles();
 
     if (!rows.length) {
       $("dashboard-body").innerHTML =
@@ -862,7 +1017,7 @@ async function loadDashboard() {
             <div class="grid">
               <div class="field">
                 <span class="k">Platform</span>
-                <span class="v"><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></span>
+                <span class="v">${platformPill(r.platform)}</span>
               </div>
               <div class="field">
                 <span class="k">Pending</span>
@@ -895,7 +1050,7 @@ async function loadDashboard() {
             ${rows.map(r => `
               <tr>
                 <td>${esc(r.label)}</td>
-                <td><span class="pill ${esc(r.platform)}">${esc(r.platform)}</span></td>
+                <td>${platformPill(r.platform)}</td>
                 <td><span class="pill ${esc(r.mode)}">${esc(r.mode)}</span></td>
                 <td>${r.pending}</td>
                 <td>${r.sent_today}</td>
@@ -907,7 +1062,6 @@ async function loadDashboard() {
       </div>
     `;
 
-    // Both variants always rendered. CSS decides which to show.
     $("dashboard-body").innerHTML = cardsHtml + tableHtml;
   } catch (e) {
     toast("Dashboard error: " + e.message, true);
@@ -934,7 +1088,6 @@ async function loadZernio(force) {
     $("zernio-refresh-status").innerHTML =
       `<span class="live-tag">refreshing…</span>`;
   }
-
   if (!$("zernio-body").innerHTML.trim()) {
     $("zernio-body").innerHTML =
       `<div class="empty">Loading Zernio niches…</div>`;
@@ -950,12 +1103,15 @@ async function loadZernio(force) {
     const totalSlots     = rows.reduce((s, r) => s + (r.slots_free || 0), 0);
     const okCount        = rows.filter(r => !r.error).length;
 
+    const current = document.body.dataset.zernioIcons || "on";
+
     $("zernio-stats").innerHTML = `
       <div class="stat"><strong>${rows.length}</strong><span>Zernio channels</span></div>
       <div class="stat"><strong>${okCount}</strong><span>Reachable</span></div>
       <div class="stat"><strong>${totalSlots}</strong><span>Free slots</span></div>
-      <div class="stat"><strong>${totalScheduled}</strong><span>Scheduled</span></div>
+      ${toggleCardHtml("zernio", "Platform icons", current)}
     `;
+    wireToggles();
 
     // Platform breakdown
     const byPlatform = {};
@@ -967,8 +1123,7 @@ async function loadZernio(force) {
     if (Object.keys(byPlatform).length) {
       const pills = Object.entries(byPlatform)
         .sort()
-        .map(([p, n]) =>
-          `<span class="pill ${esc(p)}">${esc(p)} · ${n}</span>`)
+        .map(([p, n]) => `${platformPill(p)}&nbsp;<span style="color:var(--muted);font-size:0.72rem">${n}</span>`)
         .join(" ");
       bdEl.innerHTML = `<span class="label">By platform</span> ${pills}`;
       bdEl.style.display = "flex";
@@ -997,7 +1152,6 @@ async function loadZernio(force) {
       return;
     }
 
-    // ---- Cards (mobile) ----
     const cardsHtml = `
       <div class="cards">
         ${rows.map(r => {
@@ -1006,7 +1160,7 @@ async function loadZernio(force) {
           <div class="card">
             <div class="top">
               <div class="name">${esc(r.label)}</div>
-              <span class="pill ${esc(plat)}">${esc(plat)}</span>
+              ${platformPill(plat)}
             </div>
             <div class="grid">
               <div class="field">
@@ -1035,7 +1189,6 @@ async function loadZernio(force) {
       </div>
     `;
 
-    // ---- Table (tablet/desktop) ----
     const tableHtml = `
       <div class="table-wrap">
         <table>
@@ -1059,7 +1212,7 @@ async function loadZernio(force) {
                   <strong>${esc(r.label)}</strong>
                   ${r.error ? `<div class="err">${esc(r.error)}</div>` : ""}
                 </td>
-                <td><span class="pill ${esc(plat)}">${esc(plat)}</span></td>
+                <td>${platformPill(plat)}</td>
                 <td>${esc(r.queue_name || "—")}</td>
                 <td>${r.slots_free}</td>
                 <td>${r.scheduled_total}</td>
@@ -1076,7 +1229,6 @@ async function loadZernio(force) {
 
     $("zernio-body").innerHTML = cardsHtml + tableHtml;
 
-    // Bind both (only the visible one is clickable)
     $("zernio-body").querySelectorAll("[data-zernio-posts]").forEach(b => {
       b.addEventListener("click", () => loadZernioPosts(b.dataset.zernioPosts, b));
     });
@@ -1095,14 +1247,15 @@ async function loadZernio(force) {
 async function loadZernioPosts(niche, btn) {
   const card = btn.closest(".card");
   const row = btn.closest("tr");
-  let label = niche;
-  let platform = "";
+  let label = niche, platform = "";
   if (card) {
     label = (card.querySelector(".name") || {}).textContent || niche;
-    platform = (card.querySelector(".pill") || {}).textContent || "";
+    const pill = card.querySelector(".pill");
+    platform = pill ? pill.textContent.trim() : "";
   } else if (row) {
     label = (row.querySelector("strong") || {}).textContent || niche;
-    platform = (row.querySelector(".pill") || {}).textContent || "";
+    const pill = row.querySelector(".pill");
+    platform = pill ? pill.textContent.trim() : "";
   }
 
   $("zernio-detail").innerHTML =
@@ -1122,8 +1275,8 @@ async function loadZernioPosts(niche, btn) {
     const pages = pag.pages || 1;
     const elapsed = Math.round(performance.now() - t0);
 
-    const platformPill = platform
-      ? `<span class="pill ${esc(platform.trim().toLowerCase())}">${esc(platform.trim())}</span>`
+    const platformPillHtml = platform
+      ? platformPill(platform.trim().toLowerCase())
       : "";
 
     const cardsHtml = `
@@ -1183,7 +1336,7 @@ async function loadZernioPosts(niche, btn) {
     $("zernio-detail").innerHTML = `
       <h2 class="section-title" style="margin-top:24px">
         ${esc(label)}
-        ${platformPill}
+        ${platformPillHtml}
         <small>${total} scheduled · page ${pag.page || 1}/${pages} · ${elapsed}ms</small>
       </h2>
       ${cardsHtml + tableHtml}
@@ -1194,7 +1347,7 @@ async function loadZernioPosts(niche, btn) {
   }
 }
 
-// Force-refresh button inside Zernio panel
+// Refresh button inside Zernio panel
 document.getElementById("zernio-refresh").addEventListener("click", () => {
   const btn = $("zernio-refresh");
   btn.disabled = true;
