@@ -462,6 +462,32 @@ def api_log():
     return jsonify(success=True, rows=q_log())
 
 
+# ---- Accounts directory ----
+@app.route("/api/accounts")
+def api_accounts():
+    """One row per niche with its workspace email + channel identifiers."""
+    rows = []
+    for key, cfg in NICHES.items():
+        if not isinstance(cfg, dict):
+            continue
+        publisher = (cfg.get("publisher") or "").lower()
+        api_key = cfg.get("buffer_api_key") or cfg.get("zernio_api_key") or ""
+        rows.append({
+            "key":          key,
+            "label":        cfg.get("label", key),
+            "publisher":    publisher,
+            "platform":     (cfg.get("platform") or "").lower(),
+            "email":        cfg.get("email") or "",
+            "channel_id":   cfg.get("buffer_channel_id") or "",
+            "account_id":   cfg.get("zernio_account_id") or "",
+            "profile_id":   cfg.get("zernio_profile_id") or "",
+            "channel_link": cfg.get("channel_link") or "",
+            "api_key_hint": (api_key[:10] + "…") if api_key else "",
+        })
+    rows.sort(key=lambda r: (r["email"] == "", r["email"], r["label"].lower()))
+    return jsonify(success=True, rows=rows)
+
+
 # ---- Zernio ----
 @app.route("/api/zernio/niches")
 def api_zernio_niches():
