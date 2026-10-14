@@ -238,6 +238,22 @@
       word-break: break-word;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /* Toggle button (styled like a stat card) */
     .stat.toggle-card {
       cursor: pointer;
@@ -246,6 +262,8 @@
       justify-content: center;
       gap: 6px;
       padding: 12px 14px;
+      min-width: 0;
+      overflow: hidden;
       transition: border-color var(--dur) var(--ease),
                   background var(--dur) var(--ease);
       user-select: none;
@@ -258,22 +276,65 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      min-width: 0;
+    }
+    .toggle-card .toggle-row > div {
+      min-width: 0;
+      overflow: hidden;
     }
     .toggle-card .toggle-label {
-      font-size: 0.72rem;
+      display: block;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.7px;
       color: var(--muted);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .toggle-card .toggle-state {
-      font-size: 0.9rem;
+      display: block;
+      font-size: 0.82rem;
       font-weight: 700;
       color: var(--accent2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       transition: color var(--dur) var(--ease);
     }
     .toggle-card[data-on="true"] .toggle-state { color: var(--ok-soft); }
+
+    /* Constrain the switch so it never forces the card wider */
+    .stat.toggle-card .switch {
+      width: 36px;
+      height: 20px;
+    }
+    .stat.toggle-card .slider:before {
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+    }
+    .stat.toggle-card .switch input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* iOS-style switch */
     .switch {
