@@ -262,7 +262,12 @@ def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
     query = """
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
-        post { id status }
+        ... on PostActionSuccess {
+          post { id status }
+        }
+        ... on MutationError {
+          message
+        }
       }
     }
     """
@@ -276,8 +281,14 @@ def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
         }
     }
     data = _buffer_gql(api_key, query, variables)
-    post = ((data.get("createPost") or {}).get("post") or {})
-    return post.get("id") or ""
+    payload = data.get("createPost") or {}
+    if payload.get("message"):
+        raise RuntimeError(f"Buffer rejected: {payload['message']}")
+    post = payload.get("post") or {}
+    pid = post.get("id") or ""
+    if not pid:
+        raise RuntimeError(f"Buffer returned no post id: {payload}")
+    return pid
 
 
 # ------------------------------------------------------------------
