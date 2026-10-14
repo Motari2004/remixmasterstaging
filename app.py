@@ -9,6 +9,7 @@ import os
 import sys
 import json
 import threading
+from datetime import datetime, timezone
 
 from flask import Flask, request, jsonify, send_from_directory
 
@@ -297,6 +298,24 @@ def api_zernio_refresh():
 @app.route("/api/zernio/stats")
 def api_zernio_stats():
     return jsonify(success=True, **zernio_client.cache_stats())
+
+
+# ---- Vercel cron ----
+@app.route("/api/cron")
+def api_cron():
+    """
+    Vercel cron target.
+
+    Returns 200 OK so the scheduled job in vercel.json doesn't 404.
+    Currently a no-op — extend this if the cron is meant to do real work
+    (drain staged posts, refresh Zernio cache, etc.).
+    """
+    return jsonify(
+        success=True,
+        task="cron",
+        time=datetime.now(timezone.utc).isoformat(),
+        env=os.environ.get("VERCEL_ENV", "local"),
+    )
 
 
 # ------------------------------------------------------------------
