@@ -1,16 +1,20 @@
 """
-Staging Viewer — read-only dashboard.
+Staging Viewer — read-only dashboard + cron drain.
 
 Reads niche configs from staging-service/settings.json
 (or env var SETTINGS_JSON on Vercel).
 Reads staging data from Neon.
+
+/api/cron drains the oldest pending staged posts into Buffer queues.
 """
 import os
 import sys
 import json
+import time
 import threading
 from datetime import datetime, timezone
 
+import requests
 from flask import Flask, request, jsonify, send_from_directory
 
 try:
@@ -145,6 +149,12 @@ def init_schema():
                 updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
+        # Index for fast oldest-first lookups during drain
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_staged_pending
+              ON staged_posts (niche, queued_at)
+              WHERE status = 'pending'
+        """)
 
 
 def q_summary():
@@ -214,6 +224,193 @@ def q_log():
              ORDER BY sent_at DESC LIMIT 200
         """)
         return cur.fetchall()
+
+
+# ------------------------------------------------------------------
+# Buffer client (inline — no separate module needed)
+# ------------------------------------------------------------------
+BUFFER_API = "https://api.buffer.com"
+BUFFER_POSTS_PER_RUN = int(os.environ.get("BUFFER_POSTS_PER_RUN", "3"))
+BUFFER_MAX_ATTEMPTS  = int(os.environ.get("BUFFER_MAX_ATTEMPTS", "3"))
+
+
+def _buffer_gql(api_key, query, variables=None):
+    """One GraphQL call to Buffer. Raises on failure."""
+    r = requests.post(
+        BUFFER_API,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={"query": query, "variables": variables or {}},
+        timeout=30,
+    )
+    if not r.ok:
+        raise RuntimeError(f"Buffer HTTP {r.status_code}: {r.text[:240]}")
+    payload = r.json()
+    if payload.get("errors"):
+        # Buffer GraphQL errors
+        msgs = "; ".join(e.get("message", "?") for e in payload["errors"])
+        raise RuntimeError(f"Buffer GraphQL: {msgs}")
+    return payload.get("data") or {}
+
+
+def _buffer_queue_post(api_key, channel_id, video_url, title, caption):
+    """
+    Post a video to a Buffer channel's queue.
+    Uses the same createPost/addToQueue shape as remixmaster's buffer.py.
+    Returns the created post id.
+    """
+    first_line = (title or "").strip()
+    rest = (caption or "").strip()
+    text = first_line
+    if rest:
+        text = f"{first_line}\n\n{rest}"
+    if len(text) > 2200:
+        text = text[:2197].rstrip() + "..."
+
+    query = """
+    mutation CreatePost($input: CreatePostInput!) {
+      createPost(input: $input) {
+        post { id status }
+      }
+    }
+    """
+    variables = {
+        "input": {
+            "channelId": channel_id,
+            "text": text,
+            "schedulingType": "automatic",
+            "mode": "addToQueue",
+            "assets": [{"video": {"url": video_url}}],
+        }
+    }
+    data = _buffer_gql(api_key, query, variables)
+    post = ((data.get("createPost") or {}).get("post") or {})
+    return post.get("id") or ""
+
+
+# ------------------------------------------------------------------
+# Cron drain
+# ------------------------------------------------------------------
+def _claim_oldest_pending(niche, limit):
+    """
+    Atomically claim the N oldest pending rows for a niche.
+    Marks them 'sending' so concurrent runs don't double-post.
+    Returns the claimed rows.
+    """
+    with conn().cursor() as cur:
+        cur.execute("""
+            WITH claimed AS (
+                SELECT id FROM staged_posts
+                 WHERE niche=%s AND status='pending'
+                 ORDER BY queued_at ASC
+                 LIMIT %s
+                 FOR UPDATE SKIP LOCKED
+            )
+            UPDATE staged_posts sp
+               SET status='sending'
+              FROM claimed
+             WHERE sp.id = claimed.id
+         RETURNING sp.id, sp.video_url, sp.title, sp.caption, sp.attempts
+        """, (niche, limit))
+        return cur.fetchall()
+
+
+def _mark_sent(pid, buffer_post_id):
+    with conn().cursor() as cur:
+        cur.execute("""
+            UPDATE staged_posts
+               SET status='sent',
+                   sent_at=NOW(),
+                   buffer_post_id=%s,
+                   error=NULL
+             WHERE id=%s
+        """, (buffer_post_id, pid))
+
+
+def _mark_failed(pid, err_msg, attempts):
+    """Increment attempts; park as 'failed' after max, else back to 'pending'."""
+    new_attempts = (attempts or 0) + 1
+    new_status = "failed" if new_attempts >= BUFFER_MAX_ATTEMPTS else "pending"
+    with conn().cursor() as cur:
+        cur.execute("""
+            UPDATE staged_posts
+               SET status=%s,
+                   attempts=%s,
+                   error=%s
+             WHERE id=%s
+        """, (new_status, new_attempts, err_msg[:500], pid))
+
+
+def _drain_niche(niche_key, cfg):
+    """
+    Push up to BUFFER_POSTS_PER_RUN oldest pending posts for one niche
+    into its Buffer channel. Returns a summary dict.
+    """
+    api_key = (cfg.get("buffer_api_key")
+               or SETTINGS.get("BUFFER_API_KEY")
+               or "").strip()
+    channel_id = (cfg.get("buffer_channel_id") or "").strip()
+
+    result = {
+        "niche": niche_key,
+        "label": cfg.get("label", niche_key),
+        "pushed": 0,
+        "failed": 0,
+        "buffer_ids": [],
+        "error": None,
+    }
+
+    if not api_key:
+        result["error"] = "no buffer_api_key"
+        return result
+    if not channel_id:
+        result["error"] = "no buffer_channel_id"
+        return result
+
+    claimed = _claim_oldest_pending(niche_key, BUFFER_POSTS_PER_RUN)
+    if not claimed:
+        result["reason"] = "no pending posts"
+        return result
+
+    for row in claimed:
+        try:
+            bid = _buffer_queue_post(
+                api_key,
+                channel_id,
+                row["video_url"],
+                row["title"],
+                row["caption"],
+            )
+            _mark_sent(row["id"], bid)
+            result["pushed"] += 1
+            result["buffer_ids"].append(bid)
+        except Exception as e:
+            _mark_failed(row["id"], str(e), row["attempts"])
+            result["failed"] += 1
+            # Log the first failure reason
+            if not result["error"]:
+                result["error"] = str(e)[:200]
+
+    return result
+
+
+def _run_drain():
+    """Iterate every Buffer niche and drain a few posts into each."""
+    niches = _buffer_niches()
+    results = []
+    for niche_key, cfg in niches.items():
+        try:
+            results.append(_drain_niche(niche_key, cfg))
+        except Exception as e:
+            results.append({
+                "niche": niche_key,
+                "label": cfg.get("label", niche_key),
+                "pushed": 0, "failed": 0,
+                "error": f"drain error: {e}",
+            })
+    return results
 
 
 # ------------------------------------------------------------------
@@ -300,21 +497,88 @@ def api_zernio_stats():
     return jsonify(success=True, **zernio_client.cache_stats())
 
 
-# ---- Vercel cron ----
+# ---- Cron drain ----
 @app.route("/api/cron")
 def api_cron():
     """
-    Vercel cron target.
+    Vercel / cron-job.org target.
 
-    Returns 200 OK so the scheduled job in vercel.json doesn't 404.
-    Currently a no-op — extend this if the cron is meant to do real work
-    (drain staged posts, refresh Zernio cache, etc.).
+    Auth: if CRON_SECRET is set, caller must send
+          Authorization: Bearer <CRON_SECRET>.
+
+    Behavior: for each Buffer niche, pushes the oldest pending staged
+              posts (up to BUFFER_POSTS_PER_RUN) into that niche's
+              Buffer channel via addToQueue. Marks sent or failed in Neon.
+
+    Query params:
+      ?dry=1      -> do not post or update Neon; just report what would happen
+      ?niche=KEY  -> only run for one niche
     """
+    secret = os.environ.get("CRON_SECRET")
+    if secret:
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {secret}":
+            return jsonify(success=False, error="unauthorized"), 401
+
+    dry = request.args.get("dry") in ("1", "true", "yes")
+    only = request.args.get("niche")
+
+    t0 = time.time()
+
+    if only:
+        all_niches = _buffer_niches()
+        cfg = all_niches.get(only)
+        if not cfg:
+            return jsonify(success=False, error=f"unknown niche: {only}"), 404
+        if dry:
+            with conn().cursor() as cur:
+                cur.execute("""
+                    SELECT id, title FROM staged_posts
+                     WHERE niche=%s AND status='pending'
+                     ORDER BY queued_at ASC LIMIT %s
+                """, (only, BUFFER_POSTS_PER_RUN))
+                rows = cur.fetchall()
+            return jsonify(
+                success=True,
+                dry_run=True,
+                niche=only,
+                would_push=[{"id": r["id"], "title": r["title"]} for r in rows],
+            )
+        result = _drain_niche(only, cfg)
+        return jsonify(
+            success=True,
+            ran_at=datetime.now(timezone.utc).isoformat(),
+            elapsed_s=round(time.time() - t0, 2),
+            results=[result],
+        )
+
+    if dry:
+        niches = _buffer_niches()
+        preview = []
+        for key, cfg in niches.items():
+            with conn().cursor() as cur:
+                cur.execute("""
+                    SELECT id, title FROM staged_posts
+                     WHERE niche=%s AND status='pending'
+                     ORDER BY queued_at ASC LIMIT %s
+                """, (key, BUFFER_POSTS_PER_RUN))
+                rows = cur.fetchall()
+            preview.append({
+                "niche": key,
+                "label": cfg.get("label", key),
+                "would_push": [
+                    {"id": r["id"], "title": r["title"]} for r in rows
+                ],
+            })
+        return jsonify(success=True, dry_run=True, preview=preview)
+
+    results = _run_drain()
     return jsonify(
         success=True,
-        task="cron",
-        time=datetime.now(timezone.utc).isoformat(),
-        env=os.environ.get("VERCEL_ENV", "local"),
+        ran_at=datetime.now(timezone.utc).isoformat(),
+        elapsed_s=round(time.time() - t0, 2),
+        posts_per_niche=BUFFER_POSTS_PER_RUN,
+        results=results,
     )
 
 
@@ -329,6 +593,8 @@ if __name__ == "__main__":
     print(f"🌐 Port:            {PORT}")
     print(f"📄 Settings:        "
           f"{'env var SETTINGS_JSON' if os.environ.get('SETTINGS_JSON') else SETTINGS_FILE}")
+    print(f"🅱️  Buffer post/run: {BUFFER_POSTS_PER_RUN}")
+    print(f"🅱️  Buffer max tries:{BUFFER_MAX_ATTEMPTS}")
     try:
         init_schema()
         print("✅ Schema ready")
