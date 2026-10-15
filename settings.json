@@ -6,7 +6,8 @@
       "platform": "youtube",
       "buffer_api_key": "",
       "buffer_channel_id": "6ac10197ea19ca0bde63ce2b",
-      "channel_link": ""
+      "channel_link": "",
+      "email": "smartmind006@gmail.com"
     },
     "cinemaclips37": {
       "label": "Cinema Clips 37",
@@ -14,7 +15,8 @@
       "platform": "tiktok",
       "buffer_api_key": "",
       "buffer_channel_id": "6aca86336a5c39ccb6750709",
-      "channel_link": "https://www.tiktok.com/@cinemaclips37"
+      "channel_link": "https://www.tiktok.com/@cinemaclips37",
+      "email": "smartmind006@gmail.com"
     },
     "tiktokfinance": {
       "label": "Wallet Wisdom",
@@ -233,6 +235,15 @@
       "zernio_profile_id": "6a8a9e402a0e4553009f43f4",
       "channel_link": "https://instagram.com/fitnessworkout010",
       "email": ""
+    },
+    "smartmindstudios": {
+      "label": "SmartMind Studios",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "-wImCowUrU14yxbE-eNOvSImWU-MFh9PyqKJwnsTEI8",
+      "buffer_channel_id": "6ad10287778b240e2f1b0f2a",
+      "email": "smartmind006@gmail.com",
+      "channel_link": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
