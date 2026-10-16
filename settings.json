@@ -253,6 +253,15 @@
       "buffer_channel_id": "6ad150bd778b240e2f1fd4e5",
       "email": "freelancer16594@gmail.com",
       "channel_link": ""
+    },
+    "specialforces": {
+      "label": "Special Forces",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "4g4jAWbNExouL9F9gpGpWaQhZq6kY4H3EYzEHE7t5Qh",
+      "buffer_channel_id": "6ad1e268778b240e2f26ad16",
+      "email": "johnsmark059@gmail.com",
+      "channel_link": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",

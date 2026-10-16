@@ -1,0 +1,261 @@
+{
+  "NICHES": {
+    "tinytoon": {
+      "label": "TinyToon World (kids)",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "",
+      "buffer_channel_id": "6ac10197ea19ca0bde63ce2b",
+      "channel_link": "",
+      "email": "smartmind006@gmail.com"
+    },
+    "cinemaclips37": {
+      "label": "Cinema Clips 37",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "",
+      "buffer_channel_id": "6aca86336a5c39ccb6750709",
+      "channel_link": "https://www.tiktok.com/@cinemaclips37",
+      "email": "smartmind006@gmail.com"
+    },
+    "tiktokfinance": {
+      "label": "Wallet Wisdom",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "5k6mTVFjVOIZMVAlGgj643MW7HYlLpYVB1dHlW6-4ly",
+      "buffer_channel_id": "6acb33ee778b240e2fd3f47d",
+      "channel_link": "https://www.tiktok.com/@walletwisdom.money",
+      "email": "coreiq04@gmail.com"
+    },
+    "devlogic": {
+      "label": "DevLogic",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "fdNSCKbZQpisQp-2TgSmD208NwD4GLdTNsdNAnrCJ2R",
+      "buffer_channel_id": "6acb3f20778b240e2fd48183",
+      "channel_link": "https://www.tiktok.com/@devlogic.ke",
+      "email": "spinningstar44@gmail.com"
+    },
+    "successmindset": {
+      "label": "Mindset Fuel",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "rxbG2e0wUwQ1GbYmS85Ru7IUet08sbp6MmcIkrB_aMc",
+      "buffer_channel_id": "6acb4415778b240e2fd4ae5e",
+      "channel_link": "https://www.tiktok.com/@mindsetfuel.ke1",
+      "email": "freelancer16594@gmail.com"
+    },
+    "healthtoday": {
+      "label": "Health Today",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "ppoBpPbJ6u5ATNjT7wtaCQ4cGlZLW_VzZ3I8HGSPXnN",
+      "buffer_channel_id": "6aa434d5cd8b9c702c4eddee",
+      "channel_link": "https://www.tiktok.com/@healthwellbeing02",
+      "email": "eaglecode0001@gmail.com"
+    },
+    "lifeystyle": {
+      "label": "Lifestyle Collective",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "5k6mTVFjVOIZMVAlGgj643MW7HYlLpYVB1dHlW6-4ly",
+      "buffer_channel_id": "6acb8c96778b240e2fd71810",
+      "channel_link": "",
+      "email": "coreiq04@gmail.com"
+    },
+    "scorpiotechfb": {
+      "label": "ScorpioTech (Facebook)",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "5k6mTVFjVOIZMVAlGgj643MW7HYlLpYVB1dHlW6-4ly",
+      "buffer_channel_id": "6acb8cbd778b240e2fd71975",
+      "channel_link": "",
+      "email": "coreiq04@gmail.com"
+    },
+    "healthhub": {
+      "label": "HealthHub",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "2weJccNNtHnZZ8oo-q2MmvjKeBbWG9gswVyXCTo7TyJ",
+      "buffer_channel_id": "6acb8d65778b240e2fd71f66",
+      "channel_link": "",
+      "email": "scorpioguardian1@gmail.com"
+    },
+    "funnyclips": {
+      "label": "FunnyClips",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "2weJccNNtHnZZ8oo-q2MmvjKeBbWG9gswVyXCTo7TyJ",
+      "buffer_channel_id": "6acb8d65778b240e2fd71f65",
+      "channel_link": "",
+      "email": "scorpioguardian1@gmail.com"
+    },
+    "dailywisdom": {
+      "label": "Daily Wisdom",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "fdNSCKbZQpisQp-2TgSmD208NwD4GLdTNsdNAnrCJ2R",
+      "buffer_channel_id": "6acb6737778b240e2fd5b6b4",
+      "channel_link": "",
+      "email": "spinningstar44@gmail.com"
+    },
+    "marketmentor": {
+      "label": "Market Mentor",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "4g4jAWbNExouL9F9gpGpWaQhZq6kY4H3EYzEHE7t5Qh",
+      "buffer_channel_id": "6acca1fa778b240e2fe47372",
+      "channel_link": "https://instagram.com/marketmentor010",
+      "email": "johnsmark059@gmail.com"
+    },
+    "themotivator": {
+      "label": "The Motivator",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "4g4jAWbNExouL9F9gpGpWaQhZq6kY4H3EYzEHE7t5Qh",
+      "buffer_channel_id": "6acca1c0778b240e2fe46ea9",
+      "channel_link": "https://instagram.com/themotivator010",
+      "email": "johnsmark059@gmail.com"
+    },
+    "scorpiostudios": {
+      "label": "ScorpioStudios",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "2weJccNNtHnZZ8oo-q2MmvjKeBbWG9gswVyXCTo7TyJ",
+      "buffer_channel_id": "6acca244778b240e2fe47874",
+      "channel_link": "https://instagram.com/scorpiostudios1",
+      "email": "scorpioguardian1@gmail.com"
+    },
+    "scorpion": {
+      "label": "Scorpion",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_c72fb80b0270ad015d1b2d611d049d8006c2fd98b13359dc848f65368cb15dee",
+      "zernio_account_id": "6ac5c9007948441767a277e0",
+      "zernio_profile_id": "6a721a368e3c263d8f95a0c3",
+      "channel_link": "",
+      "email": ""
+    },
+    "minecraft": {
+      "label": "Minecraft Parkour",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_c72fb80b0270ad015d1b2d611d049d8006c2fd98b13359dc848f65368cb15dee",
+      "zernio_account_id": "6ac6a43d14926599f475c9db",
+      "zernio_profile_id": "6a8dba36da848f4749071a98",
+      "channel_link": "https://www.youtube.com/@MinecraftStudioPro-y7t",
+      "email": ""
+    },
+    "scorpiotech": {
+      "label": "ScorpioTech (coding)",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_49f55b881dc9e27d059776cc74ee0f375d4cabdcf0f93beb9edce365327d5a61",
+      "zernio_account_id": "6ac77cff12b7be6c438a6923",
+      "zernio_profile_id": "6ac77cd4f4ed07ff21d6a98f",
+      "channel_link": "https://www.youtube.com/channel/UCWUe-R3OBeFuDNd_NuGU_wg",
+      "email": ""
+    },
+    "curiosityunlocked": {
+      "label": "Curiosity Unlocked",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_b954b7258a3d8786b3a276103572d17a1a441c5731680e14d8fafaee7d04c2d2",
+      "zernio_account_id": "6ac8b5958174ea92980b36e2",
+      "zernio_profile_id": "6ac8b56eef58275f67d5c596",
+      "channel_link": "https://www.youtube.com/@curiosityunlocked-g8k",
+      "email": ""
+    },
+    "mindbodybalance": {
+      "label": "Mind Body Balance",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_4761bc0523006f92583e98a4614a02fb6472f3b71e87e1f9e887f2c33b23ef37",
+      "zernio_account_id": "6ac8efad43ca385f97fbe7a5",
+      "zernio_profile_id": "6ac8ef9911f7cedc21362883",
+      "channel_link": "https://www.youtube.com/@mindbodybalance-j2s",
+      "email": ""
+    },
+    "motivatormindset": {
+      "label": "MotivatorMindset",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_8188952330afaa93c4ca426754d40537d15ed1425e5ad992c3ee8f1ef2fa8af4",
+      "zernio_account_id": "6ac90063d8a0c781dfaffe48",
+      "zernio_profile_id": "6ac90051040ebbc5bbe5c67b",
+      "channel_link": "https://www.youtube.com/@motivatormindset-j9o",
+      "email": ""
+    },
+    "coreiqanimations": {
+      "label": "CoreIQ Animations",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_8188952330afaa93c4ca426754d40537d15ed1425e5ad992c3ee8f1ef2fa8af4",
+      "zernio_account_id": "6ac905ad24de3ca6853a9e62",
+      "zernio_profile_id": "6ac9059bd32d4ea54377e9c1",
+      "channel_link": "https://www.youtube.com/@coreiq003",
+      "email": ""
+    },
+    "aitools": {
+      "label": "AI Tools",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_4761bc0523006f92583e98a4614a02fb6472f3b71e87e1f9e887f2c33b23ef37",
+      "zernio_account_id": "6ac9fd1fe956bfada366918a",
+      "zernio_profile_id": "6ac9fd0c24e4023e350c5c67",
+      "channel_link": "https://www.youtube.com/@aitoolseagle-q3f",
+      "email": ""
+    },
+    "generalplug": {
+      "label": "General Plug",
+      "publisher": "zernio",
+      "platform": "youtube",
+      "zernio_api_key": "sk_b954b7258a3d8786b3a276103572d17a1a441c5731680e14d8fafaee7d04c2d2",
+      "zernio_account_id": "6ac9fd8a5535bc43c84041b3",
+      "zernio_profile_id": "6ac9fd79dfefa5ede70fc9de",
+      "channel_link": "https://www.youtube.com/@generalplug-d7y",
+      "email": ""
+    },
+    "dailyfunnydose": {
+      "label": "DailyFunny Dose",
+      "publisher": "zernio",
+      "platform": "instagram",
+      "zernio_api_key": "sk_e3eb7e6627935245df6bba63c77405061abe66d67eecd945dbab84e5bdadb81f",
+      "zernio_account_id": "6a8a938977555aae018f027e",
+      "zernio_profile_id": "6a8a93577e708b36c246dc40",
+      "channel_link": "https://instagram.com/dailyfunnydose4",
+      "email": ""
+    },
+    "fitnessworkout": {
+      "label": "FitnessWorkout",
+      "publisher": "zernio",
+      "platform": "instagram",
+      "zernio_api_key": "sk_e3eb7e6627935245df6bba63c77405061abe66d67eecd945dbab84e5bdadb81f",
+      "zernio_account_id": "6a8a9e8177555aae0190a4c6",
+      "zernio_profile_id": "6a8a9e402a0e4553009f43f4",
+      "channel_link": "https://instagram.com/fitnessworkout010",
+      "email": ""
+    },
+    "smartmindstudios": {
+      "label": "SmartMind Studios",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "-wImCowUrU14yxbE-eNOvSImWU-MFh9PyqKJwnsTEI8",
+      "buffer_channel_id": "6ad10287778b240e2f1b0f2a",
+      "email": "smartmind006@gmail.com",
+      "channel_link": ""
+    },
+    "mindsetfuelke": {
+      "label": "MindsetFuel.KE",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "rxbG2e0wUwQ1GbYmS85Ru7IUet08sbp6MmcIkrB_aMc",
+      "buffer_channel_id": "6ad150bd778b240e2f1fd4e5",
+      "email": "freelancer16594@gmail.com",
+      "channel_link": ""
+    }
+  },
+  "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  "PORT": 5050,
+  "_built_at": "2026-10-13T21:21:27.269825"
+}

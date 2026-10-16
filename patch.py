@@ -1,5 +1,5 @@
 """
-Add MindsetFuel.KE to staging-service/settings.json.
+Add 'specialforces' to staging-service/settings.json.
 """
 import os, sys, json, shutil, datetime
 
@@ -16,16 +16,16 @@ shutil.copy2(SETTINGS, f"{SETTINGS}.bak.{ts}")
 print(f"📦 Backup: {SETTINGS}.bak.{ts}\n")
 
 niches = s.setdefault("NICHES", {})
-niches["mindsetfuelke"] = {
-    "label":             "MindsetFuel.KE",
+niches["specialforces"] = {
+    "label":             "Special Forces",
     "publisher":         "buffer",
     "platform":          "tiktok",
-    "buffer_api_key":    "rxbG2e0wUwQ1GbYmS85Ru7IUet08sbp6MmcIkrB_aMc",
-    "buffer_channel_id": "6ad150bd778b240e2f1fd4e5",
-    "email":             "freelancer16594@gmail.com",
+    "buffer_api_key":    "4g4jAWbNExouL9F9gpGpWaQhZq6kY4H3EYzEHE7t5Qh",
+    "buffer_channel_id": "6ad1e268778b240e2f26ad16",
+    "email":             "johnsmark059@gmail.com",
     "channel_link":      "",
 }
-print("✅ NICHES.mindsetfuelke added")
+print("✅ NICHES.specialforces added")
 
 with open(SETTINGS, "w", encoding="utf-8") as f:
     json.dump(s, f, indent=2)
