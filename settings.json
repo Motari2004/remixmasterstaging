@@ -271,6 +271,15 @@
       "buffer_channel_id": "6aedb7cfe29c69a1718044ae",
       "channel_link": "",
       "email": ""
+    },
+    "humorhub": {
+      "label": "Humor Hub",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "axPwy0r1QJlQWPZ28LaPKrHVfnKXvC3jw3f_ft-oGRs",
+      "buffer_channel_id": "6af055f162b70b94b0bcd7b6",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
