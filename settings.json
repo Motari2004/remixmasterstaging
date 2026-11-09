@@ -280,6 +280,15 @@
       "buffer_channel_id": "6af055f162b70b94b0bcd7b6",
       "channel_link": "",
       "email": ""
+    },
+    "gaminghub": {
+      "label": "Apex Gaming Hub",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "z9iuwGg_xJY5X8sihQOqVX-VRYUYYeEkZ_-DQVZAu0F",
+      "buffer_channel_id": "6af1b46c62b70b94b0ce9a6c",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
