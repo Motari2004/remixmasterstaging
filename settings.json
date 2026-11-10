@@ -289,6 +289,15 @@
       "buffer_channel_id": "6af1b46c62b70b94b0ce9a6c",
       "channel_link": "",
       "email": ""
+    },
+    "laughclubdaily": {
+      "label": "Laugh Club Daily",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "2axk9s7YibSoMTsebkHZQaEKQCTDly75b2Np4F8gJnI",
+      "buffer_channel_id": "6af2f67d62b70b94b0e08d35",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
