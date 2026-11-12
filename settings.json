@@ -298,6 +298,15 @@
       "buffer_channel_id": "6af2f67d62b70b94b0e08d35",
       "channel_link": "",
       "email": ""
+    },
+    "comedyreels": {
+      "label": "Comedy Reels",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
+      "buffer_channel_id": "6af5fd2662b70b94b00b7ac0",
+      "channel_link": "",
+      "email": "s.martmind006@gmail.com"
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",

@@ -1,5 +1,5 @@
 """
-Add 'laughclubdaily' to staging-service/settings.json so the viewer sees it.
+Add 'comedyreels' to staging-service/settings.json for the Vercel viewer.
 """
 import json, shutil, datetime
 
@@ -11,18 +11,16 @@ shutil.copy2(SETTINGS, f"{SETTINGS}.bak.{ts}")
 print(f"📦 Backup: {SETTINGS}.bak.{ts}")
 
 niches = s.setdefault("NICHES", {})
-niches["laughclubdaily"] = {
-    "label":             "Laugh Club Daily",
+niches["comedyreels"] = {
+    "label":             "Comedy Reels",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "2axk9s7YibSoMTsebkHZQaEKQCTDly75b2Np4F8gJnI",
-    "buffer_channel_id": "6af2f67d62b70b94b0e08d35",
+    "buffer_api_key":    "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
+    "buffer_channel_id": "6af5fd2662b70b94b00b7ac0",
     "channel_link":      "",
-    "email":             "",
+    "email":             "s.martmind006@gmail.com",
 }
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2)
-print("✅ Added laughclubdaily to viewer settings.json")
-print()
-print("Next: copy the WHOLE settings.json into Vercel's SETTINGS_JSON env var,")
-print("then redeploy the remixmasterstaging project.")
+print("✅ Added comedyreels to viewer settings.json")
+print(f"   Total NICHES: {len(niches)}")
