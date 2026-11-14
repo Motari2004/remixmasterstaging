@@ -307,6 +307,15 @@
       "buffer_channel_id": "6af7608062b70b94b01fdd2f",
       "channel_link": "",
       "email": "s.pinningstar44@gmail.com"
+    },
+    "cjtiktok": {
+      "label": "cjhood8 (TikTok)",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "z9iuwGg_xJY5X8sihQOqVX-VRYUYYeEkZ_-DQVZAu0F",
+      "buffer_channel_id": "6af81cc062b70b94b02a1b56",
+      "channel_link": "",
+      "email": "s.corpioguardian1@gmail.com"
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
