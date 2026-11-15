@@ -23,7 +23,7 @@
       "label": "Wallet Wisdom",
       "publisher": "buffer",
       "platform": "tiktok",
-      "buffer_api_key": "5k6mTVFjVOIZMVAlGgj643MW7HYlLpYVB1dHlW6-4ly",
+      "buffer_api_key": "54rqgJNzyAcOX5ElMvgXp_jQuBeAF_gloBZ0KMApeqn",
       "buffer_channel_id": "6acb33ee778b240e2fd3f47d",
       "channel_link": "https://www.tiktok.com/@walletwisdom.money",
       "email": "coreiq04@gmail.com"
@@ -329,15 +329,6 @@
       "email": "h.opefreymosingi1@gmail.com",
       "max_output_seconds": 60,
       "made_for_kids": false
-    },
-    "mentalistedits": {
-      "label": "Mentalist Edits (TikTok)",
-      "publisher": "buffer",
-      "platform": "tiktok",
-      "buffer_api_key": "8Wqb-YUhRLP7pNq62o6Z8IfoM9n1dtY0ctIOuUGBjPu",
-      "buffer_channel_id": "6af96dabece6dfde5fcf75de",
-      "channel_link": "",
-      "email": "freelancer16594@gmail.com"
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
