@@ -7,7 +7,8 @@
       "buffer_api_key": "",
       "buffer_channel_id": "6ac10197ea19ca0bde63ce2b",
       "channel_link": "",
-      "email": "smartmind006@gmail.com"
+      "email": "smartmind006@gmail.com",
+      "made_for_kids": true
     },
     "cinemaclips37": {
       "label": "Cinema Clips 37",
@@ -243,7 +244,8 @@
       "buffer_api_key": "-wImCowUrU14yxbE-eNOvSImWU-MFh9PyqKJwnsTEI8",
       "buffer_channel_id": "6ad10287778b240e2f1b0f2a",
       "email": "smartmind006@gmail.com",
-      "channel_link": ""
+      "channel_link": "",
+      "made_for_kids": false
     },
     "mindsetfuelke": {
       "label": "MindsetFuel.KE",
@@ -325,7 +327,8 @@
       "buffer_channel_id": "6af8b52f62b70b94b031eb57",
       "channel_link": "",
       "email": "h.opefreymosingi1@gmail.com",
-      "max_output_seconds": 60
+      "max_output_seconds": 60,
+      "made_for_kids": false
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
