@@ -250,7 +250,7 @@ def _buffer_gql(api_key, query, variables=None):
     return payload.get("data") or {}
 
 
-def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform="instagram"):
+def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform="instagram", cfg=None):
     first_line = (title or "").strip()
     rest = (caption or "").strip()
     text = first_line
@@ -291,7 +291,27 @@ def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform=
                 "type": "reel",
             }
         }
-    # tiktok / youtube / others: no metadata block
+    elif plat == "youtube":
+        # youtube_payload_fixed
+        # Buffer requires title + categoryId for every YouTube post.
+        # Trim title to 100 chars (YouTube limit) before sending.
+        t = (title or "").strip()
+        if not t:
+            t = (caption or "").strip().split("\n")[0][:100] or "ObiEdits"
+        if len(t) > 100:
+            t = t[:97].rstrip() + "..."
+        mfk = False
+        if isinstance(cfg, dict):
+            mfk = bool(cfg.get("made_for_kids", False))
+        metadata = {
+            "youtube": {
+                "title": t,
+                "categoryId": "24",
+                "privacy": "public",
+                "madeForKids": mfk,
+            }
+        }
+    # tiktok / others: no metadata block
 
     variables = {
         "input": {
@@ -398,6 +418,7 @@ def _drain_niche(niche_key, cfg):
                 row["title"],
                 row["caption"],
                 platform=cfg.get("platform", "instagram"),
+                cfg=cfg,
             )
             _mark_sent(row["id"], bid)
             result["pushed"] += 1

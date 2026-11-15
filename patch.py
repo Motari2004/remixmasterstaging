@@ -1,55 +1,154 @@
 """
-Sync made_for_kids onto every YouTube Buffer niche in the staging viewer's
-settings.json, matching the pipeline's settings.json values.
+Add title + categoryId to the YouTube branch of _buffer_queue_post in
+staging-service/app.py.
 
-- tinytoon: true  (kids content)
-- everything else on YouTube: false
+Buffer's YouTube API requires both. The pipeline's app.py already sends
+them; the drain's buffer code doesn't.
 
-Only touches platform: "youtube" niches. Facebook/TikTok/Instagram untouched.
+Also wires made_for_kids through, if the niche config has it.
 """
-import json, shutil, datetime, os
+import os, sys, shutil, datetime, ast
 
-SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
+APP = r"C:\Users\PC\Desktop\staging-service\app.py"
 ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-if not os.path.exists(SETTINGS):
-    print(f"❌ Not found: {SETTINGS}")
-    raise SystemExit(1)
+if not os.path.exists(APP):
+    print(f"❌ Not found: {APP}"); sys.exit(1)
 
-s = json.load(open(SETTINGS, encoding="utf-8"))
-shutil.copy2(SETTINGS, f"{SETTINGS}.bak.{ts}")
-print(f"📦 Backup: {SETTINGS}.bak.{ts}")
+src = open(APP, encoding="utf-8").read()
+backup = f"{APP}.bak.{ts}"
+shutil.copy2(APP, backup)
+print(f"📦 Backup: {backup}")
 print()
 
-niches = s.get("NICHES", {})
-changed = 0
+if "youtube_payload_fixed" in src:
+    print("Already patched.")
+    sys.exit(0)
 
-for key, cfg in niches.items():
-    if not isinstance(cfg, dict):
-        continue
-    if (cfg.get("publisher") or "").lower() != "buffer":
-        continue
-    if (cfg.get("platform") or "").lower() != "youtube":
-        continue
 
-    want = True if key == "tinytoon" else False
-    old = cfg.get("made_for_kids")
-    cfg["made_for_kids"] = want
-    changed += 1
-    mark = "✅" if old != want else "·"
-    print(f"  {mark} {key:22s} made_for_kids: {old} → {want}")
+# ---------------------------------------------------------------
+# 1. Extend _buffer_queue_post signature to accept cfg
+# ---------------------------------------------------------------
+old_sig = '''def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform="instagram"):'''
+new_sig = '''def _buffer_queue_post(api_key, channel_id, video_url, title, caption, platform="instagram", cfg=None):'''
+if old_sig not in src:
+    print("❌ Could not find _buffer_queue_post signature")
+    shutil.copy2(backup, APP); sys.exit(1)
+src = src.replace(old_sig, new_sig, 1)
+print("✅ Extended signature with cfg param")
 
-s["NICHES"] = niches
-json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2)
 
+# ---------------------------------------------------------------
+# 2. Build proper YouTube metadata inside _buffer_queue_post
+# ---------------------------------------------------------------
+old_meta = '''    plat = (platform or "").lower()
+    metadata = {}
+    if plat == "instagram":
+        metadata = {
+            "instagram": {
+                "type": "reel",
+                "shouldShareToFeed": True,
+                "isAiGenerated": True,
+            }
+        }
+    elif plat == "facebook":
+        metadata = {
+            "facebook": {
+                "type": "reel",
+            }
+        }
+    # tiktok / youtube / others: no metadata block'''
+
+new_meta = '''    plat = (platform or "").lower()
+    metadata = {}
+    if plat == "instagram":
+        metadata = {
+            "instagram": {
+                "type": "reel",
+                "shouldShareToFeed": True,
+                "isAiGenerated": True,
+            }
+        }
+    elif plat == "facebook":
+        metadata = {
+            "facebook": {
+                "type": "reel",
+            }
+        }
+    elif plat == "youtube":
+        # youtube_payload_fixed
+        # Buffer requires title + categoryId for every YouTube post.
+        # Trim title to 100 chars (YouTube limit) before sending.
+        t = (title or "").strip()
+        if not t:
+            t = (caption or "").strip().split("\\n")[0][:100] or "ObiEdits"
+        if len(t) > 100:
+            t = t[:97].rstrip() + "..."
+        mfk = False
+        if isinstance(cfg, dict):
+            mfk = bool(cfg.get("made_for_kids", False))
+        metadata = {
+            "youtube": {
+                "title": t,
+                "categoryId": "24",
+                "privacy": "public",
+                "madeForKids": mfk,
+            }
+        }
+    # tiktok / others: no metadata block'''
+
+if old_meta not in src:
+    print("❌ Could not find the metadata block")
+    shutil.copy2(backup, APP); sys.exit(1)
+src = src.replace(old_meta, new_meta, 1)
+print("✅ YouTube branch now includes title + categoryId + madeForKids")
+
+
+# ---------------------------------------------------------------
+# 3. Pass cfg through from _drain_niche to _buffer_queue_post
+# ---------------------------------------------------------------
+old_call = '''            bid = _buffer_queue_post(
+                api_key,
+                channel_id,
+                row["video_url"],
+                row["title"],
+                row["caption"],
+                platform=cfg.get("platform", "instagram"),
+            )'''
+new_call = '''            bid = _buffer_queue_post(
+                api_key,
+                channel_id,
+                row["video_url"],
+                row["title"],
+                row["caption"],
+                platform=cfg.get("platform", "instagram"),
+                cfg=cfg,
+            )'''
+if old_call not in src:
+    print("❌ Could not find _buffer_queue_post call site")
+    shutil.copy2(backup, APP); sys.exit(1)
+src = src.replace(old_call, new_call, 1)
+print("✅ Drain now passes cfg to _buffer_queue_post")
+
+
+try:
+    ast.parse(src)
+except SyntaxError as e:
+    print(f"❌ Syntax error: {e}")
+    shutil.copy2(backup, APP); sys.exit(1)
+
+open(APP, "w", encoding="utf-8").write(src)
 print()
-print(f"Updated {changed} YouTube niche(s)")
+print("=" * 60)
+print("NEXT:")
+print("=" * 60)
 print()
-print("Verify:")
-print(f'  python -c "import json; s=json.load(open(r\'{SETTINGS}\',encoding=\'utf-8\')); '
-      f'print({{k: v.get(\'made_for_kids\') for k,v in s[\'NICHES\'].items() '
-      f'if v.get(\'platform\')==\'youtube\'}})"')
+print("1) Copy the whole staging-service/settings.json into Vercel's")
+print("   SETTINGS_JSON env var, then redeploy")
 print()
-print("Next:")
-print("  1) Copy the whole settings.json into Vercel's SETTINGS_JSON env var")
-print("  2) Redeploy the remixmasterstaging project")
+print("2) After redeploy, drain ObiEdits:")
+print('   curl "https://remixmasterstaging.vercel.app/api/cron?niche=obiedits"')
+print()
+print("3) Expected response:")
+print('   {"pushed": N, "failed": 0, "error": null, ...}')
+print("   where N = number of pending ObiEdits posts")
