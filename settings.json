@@ -348,6 +348,16 @@
       "channel_link": "",
       "email": ""
     }
+  ,
+    "moonlightoons": {
+      "label": "Moonlightoons",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "Gjyl_FWtZTSbFmMZvDip8_kbQD69pJr4qIRoZoOJCZN",
+      "buffer_channel_id": "6afb0bdeece6dfde5fe4812c",
+      "channel_link": "",
+      "email": ""
+    }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
   "PORT": 5050,
@@ -355,6 +365,10 @@
   "NICHE_GROUPS": {
     "funnyclips201": [
       "funnyclips201"
+    ]
+  ,
+    "moonlightoons": [
+      "moonlightoons"
     ]
   }
 }
