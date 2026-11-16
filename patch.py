@@ -1,101 +1,259 @@
 """
-Add staged-queue deletion to staging-service/app.py.
+Add the Queue tab to staging-service/templates/index.html.
 
-The delete helpers go INTO app.py (not db.py) because app.py defines
-q_queue / conn / etc. inline and does not import db.
+5 edits:
+  1. nav button  🗂️ Queue
+  2. <section id="view-queue"> before the LOG section
+  3. JS block (loadQueueNiches / openStagedQueue / renderStagedQueue)
+  4. nav click handler wires "queue" -> loadQueueNiches()
+  5. CSS for the Queue tab
 
-Anchor: @app.route("/api/queue/<niche>") — the existing read route.
-New routes are inserted immediately after it.
+Atomic: backs up, restores on anchor miss or brace imbalance.
+Idempotent: skips if id="view-queue" already exists.
 """
-import os, sys, shutil, datetime, ast
+import os, sys, shutil, datetime
 
-APP = r"C:\Users\PC\Desktop\staging-service\app.py"
-ts  = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+HERE = r"C:\Users\PC\Desktop\staging-service"
+HTML = os.path.join(HERE, "templates", "index.html")
+ts   = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-if not os.path.exists(APP):
-    print(f"❌ Not found: {APP}"); sys.exit(1)
+if not os.path.exists(HTML):
+    print(f"❌ Not found: {HTML}"); sys.exit(1)
 
-src = open(APP, encoding="utf-8").read()
-backup = f"{APP}.bak.{ts}"
-shutil.copy2(APP, backup)
+src = open(HTML, encoding="utf-8").read()
+backup = f"{HTML}.bak.{ts}"
+shutil.copy2(HTML, backup)
 print(f"📦 Backup: {backup}")
 
-if "/api/staged/" in src:
-    print("·  staged delete routes already present — nothing to do")
+if 'id="view-queue"' in src:
+    print("·  Queue tab already present — nothing to do")
     sys.exit(0)
 
-anchor = '''@app.route("/api/queue/<niche>")
-def api_queue(niche):
-    mode, items = q_queue(niche)
-    return jsonify(success=True, niche=niche, mode=mode, items=items)'''
 
-if anchor not in src:
-    print("❌ Could not find /api/queue/<niche> anchor")
-    print("   Run: findstr /N /C:\"/api/queue\" app.py")
+def restore_and_exit(msg):
+    print(f"❌ {msg}")
+    shutil.copy2(backup, HTML)
+    print(f"↩️  Restored: {HTML}")
     sys.exit(1)
 
-new_block = anchor + '''
 
+# ---- 1. Nav button ----
+old_nav = '    <button data-nav="log" role="tab">📜 Sent Log</button>'
+if old_nav not in src:
+    restore_and_exit("Could not find nav button anchor")
+new_nav = ('    <button data-nav="queue" role="tab">🗂️ Queue</button>\n'
+           '    <button data-nav="log" role="tab">📜 Sent Log</button>')
+src = src.replace(old_nav, new_nav, 1)
+print("✅ nav button")
 
-# ---- Staged queue: delete before drain ----
-def _delete_staged_one(pid):
-    with conn().cursor() as cur:
-        cur.execute("DELETE FROM staged_posts WHERE id=%s", (pid,))
-        return cur.rowcount
+# ---- 2. Section HTML ----
+old_sect = '  <!-- =================== LOG =================== -->'
+if old_sect not in src:
+    restore_and_exit("Could not find LOG section anchor")
+new_sect = '''  <!-- =================== QUEUE =================== -->
+  <section id="view-queue" class="view">
+    <div class="queue-header">
+      <div class="queue-title-row">
+        <div class="queue-title" id="queue-title">🗂️ Staged Queue</div>
+        <div class="queue-niche-pick">
+          <select id="queue-niche" class="accounts-search">
+            <option value="">— pick a niche —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="queue-body" class="queue-body">
+      <div class="empty">Pick a niche above to see its staged queue.</div>
+    </div>
+  </section>
 
+  <!-- =================== LOG =================== -->'''
+src = src.replace(old_sect, new_sect, 1)
+print("✅ section HTML")
 
-def _delete_staged_pending(niche, statuses=("pending",)):
-    with conn().cursor() as cur:
-        cur.execute("""
-            DELETE FROM staged_posts
-             WHERE niche=%s AND status = ANY(%s)
-        """, (niche, list(statuses)))
-        return cur.rowcount
+# ---- 3. JS before loadDashboard() ----
+old_js = 'loadDashboard();'
+if old_js not in src:
+    restore_and_exit("Could not find loadDashboard() anchor")
 
+js_block = '''// -----------------------------------------------------
+// STAGED QUEUE TAB
+// -----------------------------------------------------
+async function loadQueueNiches() {
+  try {
+    const r = await fetch("/api/summary");
+    const d = await r.json();
+    const rows = d.rows || [];
+    const sel = $("queue-niche");
+    const current = sel.value;
+    sel.innerHTML = `<option value="">— pick a niche —</option>` +
+      rows.map(n => `<option value="${esc(n.key)}">${esc(n.label || n.key)}</option>`).join("");
+    if (current) sel.value = current;
+  } catch (e) {
+    console.warn("loadQueueNiches:", e);
+  }
+}
 
-@app.route("/api/staged/<niche>", methods=["GET"])
-def api_staged_list(niche):
-    """List every staged row for a niche (same shape as /api/queue)."""
-    mode, items = q_queue(niche)
-    return jsonify(success=True, niche=niche, mode=mode, items=items)
+async function openStagedQueue(niche) {
+  $("queue-title").textContent = `🗂️ Staged Queue — ${niche}`;
+  const body = $("queue-body");
+  body.innerHTML = `<div class="empty">Loading…</div>`;
+  try {
+    const r = await fetch(`/api/staged/${niche}`);
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || "failed");
+    renderStagedQueue(niche, d.items || [], d.mode);
+  } catch (e) {
+    body.innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
+  }
+}
 
+function renderStagedQueue(niche, items, mode) {
+  const body = $("queue-body");
+  if (!items.length) {
+    body.innerHTML = `<div class="empty">Queue is empty for <strong>${esc(niche)}</strong>.</div>`;
+    return;
+  }
+  const pending = items.filter(i => i.status === "pending").length;
+  body.innerHTML = `
+    <div class="queue-toolbar">
+      <span class="queue-meta">${pending} pending · ${items.length} total · mode=${esc(mode || "direct")}</span>
+      <button class="btn" id="queue-clear" data-niche="${esc(niche)}"
+              ${pending === 0 ? "disabled" : ""}>Clear pending</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>ID</th><th>Title</th><th>Status</th><th>Queued</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${items.map(i => `
+            <tr data-row-id="${i.id}">
+              <td><code>${i.id}</code></td>
+              <td class="title-cell">${esc(i.title || "—")}</td>
+              <td><span class="pill ${esc(i.status)}">${esc(i.status)}</span></td>
+              <td>${esc(i.queued_at || "")}</td>
+              <td>
+                ${i.status === "pending"
+                  ? `<button class="btn queue-del" data-id="${i.id}" data-niche="${esc(niche)}">✕ Remove</button>`
+                  : ""}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 
-@app.route("/api/staged/<niche>/<int:pid>", methods=["DELETE"])
-def api_staged_delete_one(niche, pid):
-    """Hard-delete one staged row. Only pending rows are safe to delete."""
-    try:
-        n = _delete_staged_one(pid)
-        return jsonify(success=True, deleted=n)
-    except Exception as e:
-        return jsonify(success=False, error=str(e)), 500
+  body.querySelectorAll(".queue-del").forEach(b => {
+    b.addEventListener("click", async () => {
+      const pid = b.dataset.id;
+      if (!confirm(`Remove staged item ${pid}?`)) return;
+      try {
+        const r = await fetch(`/api/staged/${niche}/${pid}`, { method: "DELETE" });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || "failed");
+        document.querySelector(`tr[data-row-id="${pid}"]`)?.remove();
+        toast("Removed");
+      } catch (e) {
+        toast(`Delete failed: ${e.message}`, true);
+      }
+    });
+  });
 
+  const clearBtn = $("queue-clear");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", async () => {
+      if (!confirm(`Delete ALL pending staged items for ${niche}?`)) return;
+      try {
+        const r = await fetch(`/api/staged/${niche}/clear`, { method: "POST" });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || "failed");
+        toast(`Removed ${d.deleted} item(s)`);
+        openStagedQueue(niche);
+      } catch (e) {
+        toast(`Clear failed: ${e.message}`, true);
+      }
+    });
+  }
+}
 
-@app.route("/api/staged/<niche>/clear", methods=["POST"])
-def api_staged_clear(niche):
-    """Delete every pending staged row for a niche."""
-    body = request.get_json(silent=True) or {}
-    statuses = body.get("statuses") or ["pending"]
-    try:
-        n = _delete_staged_pending(niche, statuses=tuple(statuses))
-        return jsonify(success=True, deleted=n)
-    except Exception as e:
-        return jsonify(success=False, error=str(e)), 500'''
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "queue-niche") {
+    const n = e.target.value;
+    if (n) openStagedQueue(n);
+    else $("queue-body").innerHTML = `<div class="empty">Pick a niche above.</div>`;
+  }
+});
 
-src = src.replace(anchor, new_block, 1)
+loadDashboard();'''
 
-try:
-    ast.parse(src)
-except SyntaxError as e:
-    print(f"❌ syntax error: {e}")
-    print(f"↩️  Restored: {APP}")
-    shutil.copy2(backup, APP)
-    sys.exit(1)
+src = src.replace(old_js, js_block, 1)
+print("✅ JS block")
 
-open(APP, "w", encoding="utf-8").write(src)
-print("✅ Added 4 routes + 2 helpers to app.py")
+# ---- 4. Nav click handler ----
+old_h = '    if (t === "log") loadLog();'
+if old_h not in src:
+    restore_and_exit("Could not find nav handler anchor")
+new_h = ('    if (t === "queue")  loadQueueNiches();\n'
+         '    if (t === "log") loadLog();')
+src = src.replace(old_h, new_h, 1)
+print("✅ nav handler")
+
+# ---- 5. CSS ----
+old_css = '''    /* =====================================================
+       16. RESPONSIVE — TABLET
+       ===================================================== */'''
+if old_css not in src:
+    restore_and_exit("Could not find CSS anchor")
+
+new_css = '''    /* =====================================================
+       QUEUE TAB
+       ===================================================== */
+    .queue-header { margin-bottom: var(--s-4); }
+    .queue-title-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-3);
+    }
+    .queue-title { font-size: 1.05rem; font-weight: 700; }
+    .queue-niche-pick select { max-width: 340px; }
+    .queue-toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      margin-bottom: var(--s-3);
+      flex-wrap: wrap;
+    }
+    .queue-meta {
+      color: var(--muted);
+      font-size: 0.78rem;
+      flex: 1 1 auto;
+    }
+    .pill.pending  { background: rgba(245,158,11,0.14); color: var(--warn-soft);
+                     border-color: rgba(245,158,11,0.25); }
+    .pill.sending  { background: rgba(0,212,255,0.14);  color: var(--accent2);
+                     border-color: rgba(0,212,255,0.25); }
+    .pill.sent     { background: rgba(34,197,94,0.14);  color: var(--ok-soft);
+                     border-color: rgba(34,197,94,0.25); }
+    .pill.failed   { background: rgba(239,68,68,0.14);  color: var(--danger-soft);
+                     border-color: rgba(239,68,68,0.25); }
+    .pill.cancelled{ background: rgba(139,148,167,0.14); color: var(--muted);
+                     border-color: rgba(139,148,167,0.25); }
+
+    /* =====================================================
+       16. RESPONSIVE — TABLET
+       ===================================================== */'''
+src = src.replace(old_css, new_css, 1)
+print("✅ CSS block")
+
+# ---- brace check ----
+if src.count("{") != src.count("}"):
+    restore_and_exit("Brace imbalance after patch")
+
+open(HTML, "w", encoding="utf-8").write(src)
 print()
-print("🎯 Verify:")
-print('   python -c "import ast; ast.parse(open(\'app.py\',encoding=\'utf-8\').read()); print(\'OK\')"')
+print(f"✅ Wrote: {HTML}")
+print(f"📦 Backup: {backup}")
 print()
-print("🎯 Then restart the staging viewer and hit:")
-print("   curl http://localhost:5050/api/staged/obiyang09")
+print("🎯 Restart the staging viewer, then open the Queue tab in the browser.")
