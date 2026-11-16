@@ -338,9 +338,23 @@
       "buffer_channel_id": "6af9be3bece6dfde5fd2af3f",
       "channel_link": "https://www.tiktok.com/@obiyang09",
       "email": "coreiq04@gmail.com"
+    },
+    "funnyclips201": {
+      "label": "Funny Clips 201",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "9w4eStTWQwYxHm7fHVXZxK29ZF2H9m8KRa5NhgJJ6ht",
+      "buffer_channel_id": "6afac17bece6dfde5fe1688f",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
   "PORT": 5050,
-  "_built_at": "2026-10-13T21:21:27.269825"
+  "_built_at": "2026-10-13T21:21:27.269825",
+  "NICHE_GROUPS": {
+    "funnyclips201": [
+      "funnyclips201"
+    ]
+  }
 }
