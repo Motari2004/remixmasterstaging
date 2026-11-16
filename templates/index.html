@@ -1319,6 +1319,12 @@ async function loadDashboard() {
                 <span class="v">${esc(fmtDate(r.last_drain))}</span>
               </div>
             </div>
+            <div class="actions">
+              <button class="btn clear-staged" data-niche="${esc(r.key)}"
+                      ${r.pending === 0 ? "disabled" : ""}>
+                🗑 Clear staged
+              </button>
+            </div>
           </div>
         `).join("")}
       </div>
@@ -1330,7 +1336,7 @@ async function loadDashboard() {
           <thead>
             <tr>
               <th>Niche</th><th>Platform</th><th>Mode</th>
-              <th>Pending</th><th>Sent today</th><th>Last drain</th>
+              <th>Pending</th><th>Sent today</th><th>Last drain</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -1342,6 +1348,12 @@ async function loadDashboard() {
                 <td>${r.pending}</td>
                 <td>${r.sent_today}</td>
                 <td>${esc(fmtDate(r.last_drain))}</td>
+                <td>
+                  <button class="btn clear-staged" data-niche="${esc(r.key)}"
+                          ${r.pending === 0 ? "disabled" : ""}>
+                    🗑 Clear staged
+                  </button>
+                </td>
               </tr>
             `).join("")}
           </tbody>
@@ -1350,6 +1362,26 @@ async function loadDashboard() {
     `;
 
     $("dashboard-body").innerHTML = cardsHtml + tableHtml;
+
+    $("dashboard-body").querySelectorAll(".clear-staged").forEach(b => {
+      b.addEventListener("click", async () => {
+        const niche = b.dataset.niche;
+        if (!confirm(`Delete ALL pending staged items for ${niche}?`)) return;
+        b.disabled = true;
+        b.textContent = "Clearing…";
+        try {
+          const r = await fetch(`/api/staged/${niche}/clear`, { method: "POST" });
+          const d = await r.json();
+          if (!d.success) throw new Error(d.error || "failed");
+          toast(`Removed ${d.deleted} item(s) from ${niche}`);
+          loadDashboard();
+        } catch (e) {
+          toast(`Clear failed: ${e.message}`, true);
+          b.disabled = false;
+          b.textContent = "🗑 Clear staged";
+        }
+      });
+    });
   } catch (e) {
     toast("Dashboard error: " + e.message, true);
   }
