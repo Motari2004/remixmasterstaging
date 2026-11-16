@@ -949,40 +949,6 @@
     }
 
     /* =====================================================
-       QUEUE TAB
-       ===================================================== */
-    .queue-header { margin-bottom: var(--s-4); }
-    .queue-title-row {
-      display: flex;
-      flex-direction: column;
-      gap: var(--s-3);
-    }
-    .queue-title { font-size: 1.05rem; font-weight: 700; }
-    .queue-niche-pick select { max-width: 340px; }
-    .queue-toolbar {
-      display: flex;
-      align-items: center;
-      gap: var(--s-3);
-      margin-bottom: var(--s-3);
-      flex-wrap: wrap;
-    }
-    .queue-meta {
-      color: var(--muted);
-      font-size: 0.78rem;
-      flex: 1 1 auto;
-    }
-    .pill.pending  { background: rgba(245,158,11,0.14); color: var(--warn-soft);
-                     border-color: rgba(245,158,11,0.25); }
-    .pill.sending  { background: rgba(0,212,255,0.14);  color: var(--accent2);
-                     border-color: rgba(0,212,255,0.25); }
-    .pill.sent     { background: rgba(34,197,94,0.14);  color: var(--ok-soft);
-                     border-color: rgba(34,197,94,0.25); }
-    .pill.failed   { background: rgba(239,68,68,0.14);  color: var(--danger-soft);
-                     border-color: rgba(239,68,68,0.25); }
-    .pill.cancelled{ background: rgba(139,148,167,0.14); color: var(--muted);
-                     border-color: rgba(139,148,167,0.25); }
-
-    /* =====================================================
        16. RESPONSIVE — TABLET
        ===================================================== */
     @media (min-width: 640px) {
@@ -1071,7 +1037,6 @@
     <button data-nav="dashboard" class="active" role="tab">📊 Buffer</button>
     <button data-nav="zernio" role="tab">🎬 Zernio</button>
     <button data-nav="accounts" role="tab">📇 Accounts</button>
-    <button data-nav="queue" role="tab">🗂️ Queue</button>
     <button data-nav="log" role="tab">📜 Sent Log</button>
   </nav>
 
@@ -1123,23 +1088,6 @@
     </div>
 
     <div id="accounts-body"></div>
-  </section>
-
-  <!-- =================== QUEUE =================== -->
-  <section id="view-queue" class="view">
-    <div class="queue-header">
-      <div class="queue-title-row">
-        <div class="queue-title" id="queue-title">🗂️ Staged Queue</div>
-        <div class="queue-niche-pick">
-          <select id="queue-niche" class="accounts-search">
-            <option value="">— pick a niche —</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div id="queue-body" class="queue-body">
-      <div class="empty">Pick a niche above to see its staged queue.</div>
-    </div>
   </section>
 
   <!-- =================== LOG =================== -->
@@ -1251,120 +1199,9 @@ document.querySelectorAll("[data-nav]").forEach(b => {
     e.preventDefault();
     const t = b.dataset.nav;
     showView(t);
-    if (t === "dashboard") // -----------------------------------------------------
-// STAGED QUEUE TAB
-// -----------------------------------------------------
-async function loadQueueNiches() {
-  try {
-    const r = await fetch("/api/summary");
-    const d = await r.json();
-    const rows = d.rows || [];
-    const sel = $("queue-niche");
-    const current = sel.value;
-    sel.innerHTML = `<option value="">— pick a niche —</option>` +
-      rows.map(n => `<option value="${esc(n.key)}">${esc(n.label || n.key)}</option>`).join("");
-    if (current) sel.value = current;
-  } catch (e) {
-    console.warn("loadQueueNiches:", e);
-  }
-}
-
-async function openStagedQueue(niche) {
-  $("queue-title").textContent = `🗂️ Staged Queue — ${niche}`;
-  const body = $("queue-body");
-  body.innerHTML = `<div class="empty">Loading…</div>`;
-  try {
-    const r = await fetch(`/api/staged/${niche}`);
-    const d = await r.json();
-    if (!d.success) throw new Error(d.error || "failed");
-    renderStagedQueue(niche, d.items || [], d.mode);
-  } catch (e) {
-    body.innerHTML = `<div class="empty err">Error: ${esc(e.message)}</div>`;
-  }
-}
-
-function renderStagedQueue(niche, items, mode) {
-  const body = $("queue-body");
-  if (!items.length) {
-    body.innerHTML = `<div class="empty">Queue is empty for <strong>${esc(niche)}</strong>.</div>`;
-    return;
-  }
-  const pending = items.filter(i => i.status === "pending").length;
-  body.innerHTML = `
-    <div class="queue-toolbar">
-      <span class="queue-meta">${pending} pending · ${items.length} total · mode=${esc(mode || "direct")}</span>
-      <button class="btn" id="queue-clear" data-niche="${esc(niche)}"
-              ${pending === 0 ? "disabled" : ""}>Clear pending</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>ID</th><th>Title</th><th>Status</th><th>Queued</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${items.map(i => `
-            <tr data-row-id="${i.id}">
-              <td><code>${i.id}</code></td>
-              <td class="title-cell">${esc(i.title || "—")}</td>
-              <td><span class="pill ${esc(i.status)}">${esc(i.status)}</span></td>
-              <td>${esc(i.queued_at || "")}</td>
-              <td>
-                ${i.status === "pending"
-                  ? `<button class="btn queue-del" data-id="${i.id}" data-niche="${esc(niche)}">✕ Remove</button>`
-                  : ""}
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  body.querySelectorAll(".queue-del").forEach(b => {
-    b.addEventListener("click", async () => {
-      const pid = b.dataset.id;
-      if (!confirm(`Remove staged item ${pid}?`)) return;
-      try {
-        const r = await fetch(`/api/staged/${niche}/${pid}`, { method: "DELETE" });
-        const d = await r.json();
-        if (!d.success) throw new Error(d.error || "failed");
-        document.querySelector(`tr[data-row-id="${pid}"]`)?.remove();
-        toast("Removed");
-      } catch (e) {
-        toast(`Delete failed: ${e.message}`, true);
-      }
-    });
-  });
-
-  const clearBtn = $("queue-clear");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", async () => {
-      if (!confirm(`Delete ALL pending staged items for ${niche}?`)) return;
-      try {
-        const r = await fetch(`/api/staged/${niche}/clear`, { method: "POST" });
-        const d = await r.json();
-        if (!d.success) throw new Error(d.error || "failed");
-        toast(`Removed ${d.deleted} item(s)`);
-        openStagedQueue(niche);
-      } catch (e) {
-        toast(`Clear failed: ${e.message}`, true);
-      }
-    });
-  }
-}
-
-document.addEventListener("change", (e) => {
-  if (e.target && e.target.id === "queue-niche") {
-    const n = e.target.value;
-    if (n) openStagedQueue(n);
-    else $("queue-body").innerHTML = `<div class="empty">Pick a niche above.</div>`;
-  }
-});
-
-loadDashboard();
+    if (t === "dashboard") loadDashboard();
     if (t === "zernio") loadZernio(false);
     if (t === "accounts") loadAccounts();
-    if (t === "queue")  loadQueueNiches();
     if (t === "log") loadLog();
   });
 });
