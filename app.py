@@ -470,6 +470,51 @@ def api_queue(niche):
     return jsonify(success=True, niche=niche, mode=mode, items=items)
 
 
+# ---- Staged queue: delete before drain ----
+def _delete_staged_one(pid):
+    with conn().cursor() as cur:
+        cur.execute("DELETE FROM staged_posts WHERE id=%s", (pid,))
+        return cur.rowcount
+
+
+def _delete_staged_pending(niche, statuses=("pending",)):
+    with conn().cursor() as cur:
+        cur.execute("""
+            DELETE FROM staged_posts
+             WHERE niche=%s AND status = ANY(%s)
+        """, (niche, list(statuses)))
+        return cur.rowcount
+
+
+@app.route("/api/staged/<niche>", methods=["GET"])
+def api_staged_list(niche):
+    """List every staged row for a niche (same shape as /api/queue)."""
+    mode, items = q_queue(niche)
+    return jsonify(success=True, niche=niche, mode=mode, items=items)
+
+
+@app.route("/api/staged/<niche>/<int:pid>", methods=["DELETE"])
+def api_staged_delete_one(niche, pid):
+    """Hard-delete one staged row. Only pending rows are safe to delete."""
+    try:
+        n = _delete_staged_one(pid)
+        return jsonify(success=True, deleted=n)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
+
+
+@app.route("/api/staged/<niche>/clear", methods=["POST"])
+def api_staged_clear(niche):
+    """Delete every pending staged row for a niche."""
+    body = request.get_json(silent=True) or {}
+    statuses = body.get("statuses") or ["pending"]
+    try:
+        n = _delete_staged_pending(niche, statuses=tuple(statuses))
+        return jsonify(success=True, deleted=n)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
+
+
 @app.route("/api/post/<int:pid>")
 def api_post(pid):
     it = q_post(pid)

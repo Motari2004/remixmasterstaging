@@ -179,6 +179,48 @@ def mark_failed(pid, err):
         """, (str(err)[:500], pid))
 
 
+def delete_staged_post(pid):
+    """Hard-delete one staged post by id. Returns rowcount (0 or 1)."""
+    with get_conn().cursor() as cur:
+        cur.execute("DELETE FROM staged_posts WHERE id=%s", (pid,))
+        return cur.rowcount
+
+
+def delete_staged_for_niche(niche, statuses=("pending",)):
+    """
+    Delete every staged post for a niche whose status is in `statuses`.
+    Default: only 'pending' (never touches 'sending' mid-drain).
+    Returns rowcount.
+    """
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            DELETE FROM staged_posts
+             WHERE niche=%s AND status = ANY(%s)
+        """, (niche, list(statuses)))
+        return cur.rowcount
+
+
+def mark_staged_cancelled(pid):
+    """Soft-delete: flip status to 'cancelled' so the drain skips it."""
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            UPDATE staged_posts
+               SET status='cancelled'
+             WHERE id=%s AND status='pending'
+        """, (pid,))
+        return cur.rowcount
+
+
+def get_staged_ids(niche):
+    """Return [(id, status)] for every staged row of a niche."""
+    with get_conn().cursor() as cur:
+        cur.execute("""
+            SELECT id, status FROM staged_posts
+             WHERE niche=%s ORDER BY id
+        """, (niche,))
+        return [(r["id"], r["status"]) for r in cur.fetchall()]
+
+
 def requeue(pid):
     with get_conn().cursor() as cur:
         cur.execute("UPDATE staged_posts SET status='pending' WHERE id=%s", (pid,))
