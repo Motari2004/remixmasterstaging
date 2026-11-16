@@ -1,6 +1,6 @@
 import json, shutil, datetime
 
-SETTINGS = r"C:\Users\PC\Desktop\remixmaster\settings.json"
+SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
 ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 s = json.load(open(SETTINGS, encoding="utf-8"))

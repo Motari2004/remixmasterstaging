@@ -329,6 +329,15 @@
       "email": "h.opefreymosingi1@gmail.com",
       "max_output_seconds": 60,
       "made_for_kids": false
+    },
+    "obiyang09": {
+      "label": "obiyang09",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "9w4eStTWQwYxHm7fHVXZxK29ZF2H9m8KRa5NhgJJ6ht",
+      "buffer_channel_id": "6af9be3bece6dfde5fd2af3f",
+      "channel_link": "https://www.tiktok.com/@obiyang09",
+      "email": "coreiq04@gmail.com"
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
