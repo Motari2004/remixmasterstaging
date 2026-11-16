@@ -347,8 +347,7 @@
       "buffer_channel_id": "6afac17bece6dfde5fe1688f",
       "channel_link": "",
       "email": ""
-    }
-  ,
+    },
     "moonlightoons": {
       "label": "Moonlightoons",
       "publisher": "buffer",
@@ -356,6 +355,15 @@
       "buffer_api_key": "Gjyl_FWtZTSbFmMZvDip8_kbQD69pJr4qIRoZoOJCZN",
       "buffer_channel_id": "6afb0bdeece6dfde5fe4812c",
       "channel_link": "",
+      "email": ""
+    },
+    "scorpio338": {
+      "label": "scorp.io338",
+      "publisher": "buffer",
+      "platform": "tiktok",
+      "buffer_api_key": "AS4xWvk_XpQrOIsDjXvKh9Ju_3bPcUEP3oP0caUda6m",
+      "buffer_channel_id": "6afb6b06ece6dfde5feab3fc",
+      "channel_link": "https://www.tiktok.com/@scorp.io338",
       "email": ""
     }
   },
@@ -365,10 +373,12 @@
   "NICHE_GROUPS": {
     "funnyclips201": [
       "funnyclips201"
-    ]
-  ,
+    ],
     "moonlightoons": [
       "moonlightoons"
+    ],
+    "scorpio338": [
+      "scorpio338"
     ]
   }
 }
