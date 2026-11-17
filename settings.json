@@ -383,6 +383,15 @@
       "buffer_channel_id": "6afcac04ece6dfde5ffd2856",
       "channel_link": "",
       "email": ""
+    },
+    "unfiltered201": {
+      "label": "unfil_tered201",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
+      "buffer_channel_id": "6afcbc58ece6dfde5ffe07f8",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -403,6 +412,9 @@
     ],
     "mrvibeman1": [
       "mrvibeman1"
+    ],
+    "unfiltered201": [
+      "unfiltered201"
     ]
   }
 }

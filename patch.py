@@ -9,21 +9,21 @@ print(f"📦 Backup: {SETTINGS}.bak.{ts}")
 
 niches = s.setdefault("NICHES", {})
 
-niches["mrvibeman1"] = {
-    "label":             "mrvibeman_1",
+niches["unfiltered201"] = {
+    "label":             "unfil_tered201",
     "publisher":         "buffer",
     "platform":          "instagram",
-    "buffer_api_key":    "Gjyl_FWtZTSbFmMZvDip8_kbQD69pJr4qIRoZoOJCZN",
-    "buffer_channel_id": "6afcac04ece6dfde5ffd2856",
-    "channel_link":      "",              # empty → validator won't require link in output
+    "buffer_api_key":    "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
+    "buffer_channel_id": "6afcbc58ece6dfde5ffe07f8",
+    "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["mrvibeman1"] = ["mrvibeman1"]
+groups["unfiltered201"] = ["unfiltered201"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added mrvibeman1 (Instagram, Gjyl key) to staging-service/settings.json")
-print(f"   Channel ID: 6afcac04ece6dfde5ffd2856")
+print("✅ Added unfiltered201 (Instagram, iKP6 key) to staging-service/settings.json")
+print(f"   Channel ID: 6afcbc58ece6dfde5ffe07f8")
 print(f"   Total NICHES: {len(niches)}")
