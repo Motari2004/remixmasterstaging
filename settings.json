@@ -365,6 +365,15 @@
       "buffer_channel_id": "6afb6b06ece6dfde5feab3fc",
       "channel_link": "https://www.tiktok.com/@scorp.io338",
       "email": ""
+    },
+    "funnyclips401": {
+      "label": "Funny Clips 401",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "Gjyl_FWtZTSbFmMZvDip8_kbQD69pJr4qIRoZoOJCZN",
+      "buffer_channel_id": "6afc819dece6dfde5ffa0357",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -379,6 +388,9 @@
     ],
     "scorpio338": [
       "scorpio338"
+    ],
+    "funnyclips401": [
+      "funnyclips401"
     ]
   }
 }
