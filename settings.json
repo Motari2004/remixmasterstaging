@@ -374,6 +374,15 @@
       "buffer_channel_id": "6afc819dece6dfde5ffa0357",
       "channel_link": "",
       "email": ""
+    },
+    "mrvibeman1": {
+      "label": "mrvibeman_1",
+      "publisher": "buffer",
+      "platform": "instagram",
+      "buffer_api_key": "Gjyl_FWtZTSbFmMZvDip8_kbQD69pJr4qIRoZoOJCZN",
+      "buffer_channel_id": "6afcac04ece6dfde5ffd2856",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -391,6 +400,9 @@
     ],
     "funnyclips401": [
       "funnyclips401"
+    ],
+    "mrvibeman1": [
+      "mrvibeman1"
     ]
   }
 }
