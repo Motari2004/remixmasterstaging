@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["gta6intel"] = {
-    "label":             "Gta 6 Intel",
+niches["bmwlife"] = {
+    "label":             "Bmw-Life",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
-    "buffer_channel_id": "6afd5972ece6dfde5f0751fa",
+    "buffer_api_key":    "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
+    "buffer_channel_id": "6afd78b1ece6dfde5f08cc03",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["gta6intel"] = ["gta6intel"]
+groups["bmwlife"] = ["bmwlife"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added gta6intel (Facebook, new key) to staging-service/settings.json")
-print("   Channel ID: 6afd5972ece6dfde5f0751fa")
+print("✅ Added bmwlife (Facebook, BMW page) to staging-service/settings.json")
+print("   Channel ID: 6afd78b1ece6dfde5f08cc03")
 print("   Total NICHES: {}".format(len(niches)))

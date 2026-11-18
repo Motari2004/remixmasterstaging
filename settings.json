@@ -410,6 +410,15 @@
       "buffer_channel_id": "6afd5972ece6dfde5f0751fa",
       "channel_link": "",
       "email": ""
+    },
+    "bmwlife": {
+      "label": "Bmw-Life",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
+      "buffer_channel_id": "6afd78b1ece6dfde5f08cc03",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -439,6 +448,9 @@
     ],
     "gta6intel": [
       "gta6intel"
+    ],
+    "bmwlife": [
+      "bmwlife"
     ]
   }
 }
