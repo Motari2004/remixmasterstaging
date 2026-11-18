@@ -401,6 +401,15 @@
       "buffer_channel_id": "6afd363aece6dfde5f057b63",
       "channel_link": "",
       "email": ""
+    },
+    "gta6intel": {
+      "label": "Gta 6 Intel",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
+      "buffer_channel_id": "6afd5972ece6dfde5f0751fa",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -427,6 +436,9 @@
     ],
     "wildlifewhisper": [
       "wildlifewhisper"
+    ],
+    "gta6intel": [
+      "gta6intel"
     ]
   }
 }

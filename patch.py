@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["wildlifewhisper"] = {
-    "label":             "WildlifeWhisper",
+niches["gta6intel"] = {
+    "label":             "Gta 6 Intel",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
-    "buffer_channel_id": "6afd363aece6dfde5f057b63",
+    "buffer_api_key":    "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
+    "buffer_channel_id": "6afd5972ece6dfde5f0751fa",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["wildlifewhisper"] = ["wildlifewhisper"]
+groups["gta6intel"] = ["gta6intel"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added wildlifewhisper (Facebook, iKP6 key) to staging-service/settings.json")
-print("   Channel ID: 6afd363aece6dfde5f057b63")
+print("✅ Added gta6intel (Facebook, new key) to staging-service/settings.json")
+print("   Channel ID: 6afd5972ece6dfde5f0751fa")
 print("   Total NICHES: {}".format(len(niches)))
