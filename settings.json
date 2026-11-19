@@ -419,6 +419,15 @@
       "buffer_channel_id": "6afd78b1ece6dfde5f08cc03",
       "channel_link": "",
       "email": ""
+    },
+    "luxuryhousepoint": {
+      "label": "Luxuryhousepoint",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
+      "buffer_channel_id": "6afe927dece6dfde5f19d9fb",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -451,6 +460,9 @@
     ],
     "bmwlife": [
       "bmwlife"
+    ],
+    "luxuryhousepoint": [
+      "luxuryhousepoint"
     ]
   }
 }

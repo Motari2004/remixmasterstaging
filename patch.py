@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["bmwlife"] = {
-    "label":             "Bmw-Life",
+niches["luxuryhousepoint"] = {
+    "label":             "Luxuryhousepoint",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "iKP6jMSBVtG9hdP5rJHHfutQ-BVrYYaXYx6qrSpxE6E",
-    "buffer_channel_id": "6afd78b1ece6dfde5f08cc03",
+    "buffer_api_key":    "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
+    "buffer_channel_id": "6afe927dece6dfde5f19d9fb",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["bmwlife"] = ["bmwlife"]
+groups["luxuryhousepoint"] = ["luxuryhousepoint"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added bmwlife (Facebook, BMW page) to staging-service/settings.json")
-print("   Channel ID: 6afd78b1ece6dfde5f08cc03")
+print("✅ Added luxuryhousepoint (Facebook) to staging-service/settings.json")
+print("   Channel ID: 6afe927dece6dfde5f19d9fb")
 print("   Total NICHES: {}".format(len(niches)))
