@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["luxuryhousepoint"] = {
-    "label":             "Luxuryhousepoint",
+niches["lyricvibe"] = {
+    "label":             "lyricvibe",
     "publisher":         "buffer",
-    "platform":          "facebook",
-    "buffer_api_key":    "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
-    "buffer_channel_id": "6afe927dece6dfde5f19d9fb",
+    "platform":          "youtube",
+    "buffer_api_key":    "AS4xWvk_XpQrOIsDjXvKh9Ju_3bPcUEP3oP0caUda6m",
+    "buffer_channel_id": "6aff24e5ece6dfde5f2129b4",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["luxuryhousepoint"] = ["luxuryhousepoint"]
+groups["lyricvibe"] = ["lyricvibe"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added luxuryhousepoint (Facebook) to staging-service/settings.json")
-print("   Channel ID: 6afe927dece6dfde5f19d9fb")
+print("✅ Added lyricvibe (YouTube) to staging-service/settings.json")
+print("   Channel ID: 6aff24e5ece6dfde5f2129b4")
 print("   Total NICHES: {}".format(len(niches)))

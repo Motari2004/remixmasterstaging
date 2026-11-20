@@ -428,6 +428,15 @@
       "buffer_channel_id": "6aff13d0ece6dfde5f2016bb",
       "channel_link": "",
       "email": ""
+    },
+    "lyricvibe": {
+      "label": "lyricvibe",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "AS4xWvk_XpQrOIsDjXvKh9Ju_3bPcUEP3oP0caUda6m",
+      "buffer_channel_id": "6aff24e5ece6dfde5f2129b4",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -463,6 +472,9 @@
     ],
     "luxuryhousepoint": [
       "luxuryhousepoint"
+    ],
+    "lyricvibe": [
+      "lyricvibe"
     ]
   }
 }
