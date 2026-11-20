@@ -437,6 +437,15 @@
       "buffer_channel_id": "6aff24e5ece6dfde5f2129b4",
       "channel_link": "",
       "email": ""
+    },
+    "entertainmentdose": {
+      "label": "Entertainment Dose",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "AS4xWvk_XpQrOIsDjXvKh9Ju_3bPcUEP3oP0caUda6m",
+      "buffer_channel_id": "6b00bacdece6dfde5f390f89",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -475,6 +484,9 @@
     ],
     "lyricvibe": [
       "lyricvibe"
+    ],
+    "entertainmentdose": [
+      "entertainmentdose"
     ]
   }
 }
