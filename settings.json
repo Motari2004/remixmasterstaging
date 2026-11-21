@@ -446,6 +446,15 @@
       "buffer_channel_id": "6b00bacdece6dfde5f390f89",
       "channel_link": "",
       "email": ""
+    },
+    "militarydrills": {
+      "label": "Military Drills",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "YejnMy656UwVGgapzVDWIIkB0JszNCzu7iExNEpNiJ6",
+      "buffer_channel_id": "6b0131a4ece6dfde5f3fd9f0",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -487,6 +496,9 @@
     ],
     "entertainmentdose": [
       "entertainmentdose"
+    ],
+    "militarydrills": [
+      "militarydrills"
     ]
   }
 }

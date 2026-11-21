@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["entertainmentdose"] = {
-    "label":             "Entertainment Dose",
+niches["militarydrills"] = {
+    "label":             "Military Drills",
     "publisher":         "buffer",
     "platform":          "youtube",
-    "buffer_api_key":    "AS4xWvk_XpQrOIsDjXvKh9Ju_3bPcUEP3oP0caUda6m",
-    "buffer_channel_id": "6b00bacdece6dfde5f390f89",
+    "buffer_api_key":    "YejnMy656UwVGgapzVDWIIkB0JszNCzu7iExNEpNiJ6",
+    "buffer_channel_id": "6b0131a4ece6dfde5f3fd9f0",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["entertainmentdose"] = ["entertainmentdose"]
+groups["militarydrills"] = ["militarydrills"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added entertainmentdose (YouTube) to staging-service/settings.json")
-print("   Channel ID: 6b00bacdece6dfde5f390f89")
+print("✅ Added militarydrills (YouTube) to staging-service/settings.json")
+print("   Channel ID: 6b0131a4ece6dfde5f3fd9f0")
 print("   Total NICHES: {}".format(len(niches)))
