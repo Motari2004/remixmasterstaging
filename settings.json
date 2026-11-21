@@ -455,6 +455,15 @@
       "buffer_channel_id": "6b0131a4ece6dfde5f3fd9f0",
       "channel_link": "",
       "email": ""
+    },
+    "kingsedts": {
+      "label": "Kings Edts Official",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
+      "buffer_channel_id": "6b014ab2ece6dfde5f411cb5",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -499,6 +508,9 @@
     ],
     "militarydrills": [
       "militarydrills"
+    ],
+    "kingsedts": [
+      "kingsedts"
     ]
   }
 }
