@@ -3,10 +3,10 @@ import json, shutil, datetime, os
 SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
 ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-KEY        = "evanknox"
-LABEL      = "Evan Knox"
+KEY        = "ringsidestories"
+LABEL      = "Ringside Stories"
 API_KEY    = "DAnB91pjBYZbbMY6RUjq2qr1rashKQ4WKnOlrRaSteP"
-CHANNEL_ID = "6b01717aece6dfde5f42c151"
+CHANNEL_ID = "6b020945ece6dfde5f4b2c08"
 
 if not os.path.exists(SETTINGS):
     print("❌ Not found: {}".format(SETTINGS))
@@ -19,13 +19,11 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 groups = s.setdefault("NICHE_GROUPS", {})
-niches.pop("patrickjane", None)
-groups.pop("patrickjane", None)
 
 niches[KEY] = {
     "label":             LABEL,
     "publisher":         "buffer",
-    "platform":          "tiktok",
+    "platform":          "youtube",
     "buffer_api_key":    API_KEY,
     "buffer_channel_id": CHANNEL_ID,
     "channel_link":      "",
@@ -34,5 +32,5 @@ niches[KEY] = {
 groups[KEY] = [KEY]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-print("✅ staging settings.json: {} (tiktok) -> {}".format(KEY, CHANNEL_ID))
+print("✅ staging settings.json: {} (youtube) -> {}".format(KEY, CHANNEL_ID))
 print("   Total NICHES: {}".format(len(niches)))

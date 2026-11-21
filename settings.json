@@ -464,6 +464,15 @@
       "buffer_channel_id": "6b01717aece6dfde5f42c151",
       "channel_link": "",
       "email": ""
+    },
+    "ringsidestories": {
+      "label": "Ringside Stories",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "DAnB91pjBYZbbMY6RUjq2qr1rashKQ4WKnOlrRaSteP",
+      "buffer_channel_id": "6b020945ece6dfde5f4b2c08",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -511,6 +520,9 @@
     ],
     "evanknox": [
       "evanknox"
+    ],
+    "ringsidestories": [
+      "ringsidestories"
     ]
   }
 }
