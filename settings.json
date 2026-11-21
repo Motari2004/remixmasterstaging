@@ -456,12 +456,12 @@
       "channel_link": "",
       "email": ""
     },
-    "kingsedts": {
-      "label": "Kings Edts Official",
+    "evanknox": {
+      "label": "Evan Knox",
       "publisher": "buffer",
-      "platform": "youtube",
-      "buffer_api_key": "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
-      "buffer_channel_id": "6b014ab2ece6dfde5f411cb5",
+      "platform": "tiktok",
+      "buffer_api_key": "DAnB91pjBYZbbMY6RUjq2qr1rashKQ4WKnOlrRaSteP",
+      "buffer_channel_id": "6b01717aece6dfde5f42c151",
       "channel_link": "",
       "email": ""
     }
@@ -509,8 +509,8 @@
     "militarydrills": [
       "militarydrills"
     ],
-    "kingsedts": [
-      "kingsedts"
+    "evanknox": [
+      "evanknox"
     ]
   }
 }

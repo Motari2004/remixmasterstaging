@@ -1,29 +1,38 @@
-import json, shutil, datetime
+import json, shutil, datetime, os
 
 SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
 ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+KEY        = "evanknox"
+LABEL      = "Evan Knox"
+API_KEY    = "DAnB91pjBYZbbMY6RUjq2qr1rashKQ4WKnOlrRaSteP"
+CHANNEL_ID = "6b01717aece6dfde5f42c151"
+
+if not os.path.exists(SETTINGS):
+    print("❌ Not found: {}".format(SETTINGS))
+    print("   Fix the SETTINGS path at the top of this script.")
+    raise SystemExit(1)
 
 s = json.load(open(SETTINGS, encoding="utf-8"))
 shutil.copy2(SETTINGS, "{}.bak.{}".format(SETTINGS, ts))
 print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
+groups = s.setdefault("NICHE_GROUPS", {})
+niches.pop("patrickjane", None)
+groups.pop("patrickjane", None)
 
-niches["kingsedts"] = {
-    "label":             "Kings Edts Official",
+niches[KEY] = {
+    "label":             LABEL,
     "publisher":         "buffer",
-    "platform":          "youtube",
-    "buffer_api_key":    "6vWoDkYI1k8pLVLtBlpjIPmkrXEja4berTuXb8WCyO5",
-    "buffer_channel_id": "6b014ab2ece6dfde5f411cb5",
+    "platform":          "tiktok",
+    "buffer_api_key":    API_KEY,
+    "buffer_channel_id": CHANNEL_ID,
     "channel_link":      "",
     "email":             "",
 }
-
-groups = s.setdefault("NICHE_GROUPS", {})
-groups["kingsedts"] = ["kingsedts"]
+groups[KEY] = [KEY]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-
-print("✅ Added kingsedts (YouTube) to staging-service/settings.json")
-print("   Channel ID: 6b014ab2ece6dfde5f411cb5")
+print("✅ staging settings.json: {} (tiktok) -> {}".format(KEY, CHANNEL_ID))
 print("   Total NICHES: {}".format(len(niches)))
