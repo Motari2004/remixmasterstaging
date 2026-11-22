@@ -473,6 +473,15 @@
       "buffer_channel_id": "6b020945ece6dfde5f4b2c08",
       "channel_link": "",
       "email": ""
+    },
+    "erebus": {
+      "label": "Erebus",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "DAnB91pjBYZbbMY6RUjq2qr1rashKQ4WKnOlrRaSteP",
+      "buffer_channel_id": "6b0292f48541f09ecb5ffde1",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -523,6 +532,9 @@
     ],
     "ringsidestories": [
       "ringsidestories"
+    ],
+    "erebus": [
+      "erebus"
     ]
   }
 }
