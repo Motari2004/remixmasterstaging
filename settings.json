@@ -482,6 +482,15 @@
       "buffer_channel_id": "6b0292f48541f09ecb5ffde1",
       "channel_link": "",
       "email": ""
+    },
+    "tallalcina": {
+      "label": "Tall Alcina",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "0JjexI8exlYOQ33y-YnzScNJJusSFdtAPLhLPYgdkF7",
+      "buffer_channel_id": "6b0299f58541f09ecb605f9a",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -535,6 +544,9 @@
     ],
     "erebus": [
       "erebus"
+    ],
+    "tallalcina": [
+      "tallalcina"
     ]
   }
 }
