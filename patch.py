@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["hongfan"] = {
-    "label":             "Hong Fan",
+niches["reggaevault"] = {
+    "label":             "Reggae Vault",
     "publisher":         "buffer",
-    "platform":          "facebook",
-    "buffer_api_key":    "0JjexI8exlYOQ33y-YnzScNJJusSFdtAPLhLPYgdkF7",
-    "buffer_channel_id": "6b02cedb8541f09ecb627ad8",
+    "platform":          "youtube",
+    "buffer_api_key":    "cJ_1Tg-A5URRltLJZZc1k5zvl3gXI7_t7k6CxPQGcKf",
+    "buffer_channel_id": "6b03531e8541f09ecb69deb6",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["hongfan"] = ["hongfan"]
+groups["reggaevault"] = ["reggaevault"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added hongfan (Facebook) to staging-service/settings.json")
-print("   Channel ID: 6b02cedb8541f09ecb627ad8")
+print("✅ Added reggaevault (YouTube) to staging-service/settings.json")
+print("   Channel ID: 6b03531e8541f09ecb69deb6")
 print("   Total NICHES: {}".format(len(niches)))
