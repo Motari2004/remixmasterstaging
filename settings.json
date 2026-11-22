@@ -491,6 +491,15 @@
       "buffer_channel_id": "6b0299f58541f09ecb605f9a",
       "channel_link": "",
       "email": ""
+    },
+    "hongfan": {
+      "label": "Hong Fan",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "0JjexI8exlYOQ33y-YnzScNJJusSFdtAPLhLPYgdkF7",
+      "buffer_channel_id": "6b02cedb8541f09ecb627ad8",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -547,6 +556,9 @@
     ],
     "tallalcina": [
       "tallalcina"
+    ],
+    "hongfan": [
+      "hongfan"
     ]
   }
 }
