@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["reggaevault"] = {
-    "label":             "Reggae Vault",
+niches["mindova"] = {
+    "label":             "MindOva",
     "publisher":         "buffer",
     "platform":          "youtube",
     "buffer_api_key":    "cJ_1Tg-A5URRltLJZZc1k5zvl3gXI7_t7k6CxPQGcKf",
-    "buffer_channel_id": "6b03531e8541f09ecb69deb6",
+    "buffer_channel_id": "6b03dfc78541f09ecb71fd0f",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["reggaevault"] = ["reggaevault"]
+groups["mindova"] = ["mindova"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added reggaevault (YouTube) to staging-service/settings.json")
-print("   Channel ID: 6b03531e8541f09ecb69deb6")
+print("✅ Added mindova (YouTube) to staging-service/settings.json")
+print("   Channel ID: 6b03dfc78541f09ecb71fd0f")
 print("   Total NICHES: {}".format(len(niches)))

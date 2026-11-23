@@ -509,6 +509,15 @@
       "buffer_channel_id": "6b03531e8541f09ecb69deb6",
       "channel_link": "",
       "email": ""
+    },
+    "mindova": {
+      "label": "MindOva",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "cJ_1Tg-A5URRltLJZZc1k5zvl3gXI7_t7k6CxPQGcKf",
+      "buffer_channel_id": "6b03dfc78541f09ecb71fd0f",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -571,6 +580,9 @@
     ],
     "reggaevault": [
       "reggaevault"
+    ],
+    "mindova": [
+      "mindova"
     ]
   }
 }
