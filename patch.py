@@ -9,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["mindova"] = {
-    "label":             "MindOva",
+niches["funnydaily"] = {
+    "label":             "Funny Daily",
     "publisher":         "buffer",
-    "platform":          "youtube",
-    "buffer_api_key":    "cJ_1Tg-A5URRltLJZZc1k5zvl3gXI7_t7k6CxPQGcKf",
-    "buffer_channel_id": "6b03dfc78541f09ecb71fd0f",
+    "platform":          "facebook",
+    "buffer_api_key":    "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
+    "buffer_channel_id": "6b0470728541f09ecb78eb73",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["mindova"] = ["mindova"]
+groups["funnydaily"] = ["funnydaily"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added mindova (YouTube) to staging-service/settings.json")
-print("   Channel ID: 6b03dfc78541f09ecb71fd0f")
+print("✅ Added funnydaily (facebook) to staging-service/settings.json")
+print("   Channel ID: 6b0470728541f09ecb78eb73")
 print("   Total NICHES: {}".format(len(niches)))

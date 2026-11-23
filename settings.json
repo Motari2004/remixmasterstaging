@@ -518,6 +518,24 @@
       "buffer_channel_id": "6b03dfc78541f09ecb71fd0f",
       "channel_link": "",
       "email": ""
+    },
+    "couragewins": {
+      "label": "Courage Wins",
+      "publisher": "buffer",
+      "platform": "youtube",
+      "buffer_api_key": "cJ_1Tg-A5URRltLJZZc1k5zvl3gXI7_t7k6CxPQGcKf",
+      "buffer_channel_id": "6b03ee348541f09ecb7295f4",
+      "channel_link": "",
+      "email": ""
+    },
+    "funnydaily": {
+      "label": "Funny Daily",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
+      "buffer_channel_id": "6b0470728541f09ecb78eb73",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -583,6 +601,12 @@
     ],
     "mindova": [
       "mindova"
+    ],
+    "couragewins": [
+      "couragewins"
+    ],
+    "funnydaily": [
+      "funnydaily"
     ]
   }
 }
