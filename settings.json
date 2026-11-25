@@ -536,6 +536,24 @@
       "buffer_channel_id": "6b0470728541f09ecb78eb73",
       "channel_link": "",
       "email": ""
+    },
+    "10secondsfunny": {
+      "label": "10 Seconds Funny",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
+      "buffer_channel_id": "6b05ab4b8541f09ecb8b4a45",
+      "channel_link": "",
+      "email": ""
+    },
+    "carljohnson": {
+      "label": "Carl Johnson",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
+      "buffer_channel_id": "6b068dec8541f09ecb994d2a",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -607,6 +625,12 @@
     ],
     "funnydaily": [
       "funnydaily"
+    ],
+    "10secondsfunny": [
+      "10secondsfunny"
+    ],
+    "carljohnson": [
+      "carljohnson"
     ]
   }
 }

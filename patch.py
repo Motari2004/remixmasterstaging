@@ -9,21 +9,20 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["funnydaily"] = {
-    "label":             "Funny Daily",
+niches["carljohnson"] = {
+    "label":             "Carl Johnson",
     "publisher":         "buffer",
     "platform":          "facebook",
     "buffer_api_key":    "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
-    "buffer_channel_id": "6b0470728541f09ecb78eb73",
+    "buffer_channel_id": "6b068dec8541f09ecb994d2a",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["funnydaily"] = ["funnydaily"]
+groups["carljohnson"] = ["carljohnson"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added funnydaily (facebook) to staging-service/settings.json")
-print("   Channel ID: 6b0470728541f09ecb78eb73")
+print("✅ Added carljohnson to staging-service/settings.json")
 print("   Total NICHES: {}".format(len(niches)))
