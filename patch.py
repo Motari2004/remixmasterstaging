@@ -9,20 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["carljohnson"] = {
-    "label":             "Carl Johnson",
+niches["movieshub"] = {
+    "label":             "Movies Hub",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "qXcN6Rs42vqOM8sMDou8YpX_XmlFKwdEfos6J3D52jC",
-    "buffer_channel_id": "6b068dec8541f09ecb994d2a",
+    "buffer_api_key":    "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb",
+    "buffer_channel_id": "6b069f438541f09ecb9a1a7a",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["carljohnson"] = ["carljohnson"]
+groups["movieshub"] = ["movieshub"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added carljohnson to staging-service/settings.json")
+print("✅ Added movieshub to staging-service/settings.json")
+print("   Channel ID: 6b069f438541f09ecb9a1a7a")
 print("   Total NICHES: {}".format(len(niches)))

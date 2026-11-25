@@ -554,6 +554,15 @@
       "buffer_channel_id": "6b068dec8541f09ecb994d2a",
       "channel_link": "",
       "email": ""
+    },
+    "movieshub": {
+      "label": "Movies Hub",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb",
+      "buffer_channel_id": "6b069f438541f09ecb9a1a7a",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -631,6 +640,9 @@
     ],
     "carljohnson": [
       "carljohnson"
+    ],
+    "movieshub": [
+      "movieshub"
     ]
   }
 }
