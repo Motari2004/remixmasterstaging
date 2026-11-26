@@ -563,6 +563,15 @@
       "buffer_channel_id": "6b069f438541f09ecb9a1a7a",
       "channel_link": "",
       "email": ""
+    },
+    "funnytime": {
+      "label": "Funny Time",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb",
+      "buffer_channel_id": "6b07d5198541f09ecbab6560",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -643,6 +652,9 @@
     ],
     "movieshub": [
       "movieshub"
+    ],
+    "funnytime": [
+      "funnytime"
     ]
   }
 }
