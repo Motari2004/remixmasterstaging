@@ -1,29 +1,52 @@
-import json, shutil, datetime
+import datetime
+import json
+import os
+import shutil
 
-SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
-ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+SETTINGS_PATH = r"C:\Users\PC\Desktop\staging-service\settings.json"
 
-s = json.load(open(SETTINGS, encoding="utf-8"))
-shutil.copy2(SETTINGS, "{}.bak.{}".format(SETTINGS, ts))
-print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
+KEY          = "funnycomedy"
+LABEL        = "Funny Comedy"
+PLATFORM     = "facebook"
+PUBLISHER    = "buffer"
+API_KEY      = "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb"
+CHANNEL_ID   = "6b07f2328541f09ecbacb5c4"
+CHANNEL_LINK = ""
+EMAIL        = ""
 
-niches = s.setdefault("NICHES", {})
 
-niches["funnytime"] = {
-    "label":             "Funny Time",
-    "publisher":         "buffer",
-    "platform":          "facebook",
-    "buffer_api_key":    "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb",
-    "buffer_channel_id": "6b07d5198541f09ecbab6560",
-    "channel_link":      "",
-    "email":             "",
-}
+def main() -> None:
+    if not os.path.exists(SETTINGS_PATH):
+        print(f"❌ settings.json not found: {SETTINGS_PATH}")
+        raise SystemExit(1)
 
-groups = s.setdefault("NICHE_GROUPS", {})
-groups["funnytime"] = ["funnytime"]
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = f"{SETTINGS_PATH}.bak.{ts}"
+    shutil.copy2(SETTINGS_PATH, backup_path)
+    print(f"📦 Backed up settings.json -> {backup_path}")
 
-json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+    with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-print("✅ Added funnytime (Facebook) to staging-service/settings.json")
-print("   Channel ID: 6b07d5198541f09ecbab6560")
-print("   Total NICHES: {}".format(len(niches)))
+    niches = data.setdefault("NICHES", {})
+    niches[KEY] = {
+        "label": LABEL,
+        "publisher": PUBLISHER,
+        "platform": PLATFORM,
+        "buffer_api_key": API_KEY,
+        "buffer_channel_id": CHANNEL_ID,
+        "channel_link": CHANNEL_LINK,
+        "email": EMAIL,
+    }
+
+    groups = data.setdefault("NICHE_GROUPS", {})
+    groups[KEY] = [KEY]
+
+    with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    print(f"✅ Patched staging settings.json: '{KEY}' ({PLATFORM}) -> {CHANNEL_ID}")
+
+
+if __name__ == "__main__":
+    main()

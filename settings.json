@@ -572,6 +572,15 @@
       "buffer_channel_id": "6b07d5198541f09ecbab6560",
       "channel_link": "",
       "email": ""
+    },
+    "funnycomedy": {
+      "label": "Funny Comedy",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "NZUkWuR4CFUAc-hPK9umuLz7_gViJNFP8695PeJdPjb",
+      "buffer_channel_id": "6b07f2328541f09ecbacb5c4",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -655,6 +664,9 @@
     ],
     "funnytime": [
       "funnytime"
+    ],
+    "funnycomedy": [
+      "funnycomedy"
     ]
   }
 }
