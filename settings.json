@@ -581,6 +581,15 @@
       "buffer_channel_id": "6b07f83b8541f09ecbacfd90",
       "channel_link": "",
       "email": ""
+    },
+    "aripvlogger": {
+      "label": "Arip Vlogger",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "59P6QgJrq40-fFDX39VAuyfRSocNp1QR3wDwFA4ag7C",
+      "buffer_channel_id": "6b0932708541f09ecbbe0bf7",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -667,6 +676,9 @@
     ],
     "funnycomedy": [
       "funnycomedy"
+    ],
+    "aripvlogger": [
+      "aripvlogger"
     ]
   }
 }
