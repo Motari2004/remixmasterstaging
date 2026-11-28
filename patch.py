@@ -1,6 +1,4 @@
-import datetime
-import json
-import shutil
+import json, shutil, datetime
 
 SETTINGS = r"C:\Users\PC\Desktop\staging-service\settings.json"
 ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -11,21 +9,21 @@ print("📦 Backup: {}.bak.{}".format(SETTINGS, ts))
 
 niches = s.setdefault("NICHES", {})
 
-niches["worldwonders"] = {
-    "label":             "Wild Wonders",
+niches["aquaverse"] = {
+    "label":             "AquaVerse",
     "publisher":         "buffer",
     "platform":          "facebook",
-    "buffer_api_key":    "59P6QgJrq40-fFDX39VAuyfRSocNp1QR3wDwFA4ag7C",
-    "buffer_channel_id": "6b094f6c8541f09ecbbf44df",
+    "buffer_api_key":    "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
+    "buffer_channel_id": "6b0a844c8541f09ecbcfd0ac",
     "channel_link":      "",
     "email":             "",
 }
 
 groups = s.setdefault("NICHE_GROUPS", {})
-groups["worldwonders"] = ["worldwonders"]
+groups["aquaverse"] = ["aquaverse"]
 
 json.dump(s, open(SETTINGS, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 
-print("✅ Added worldwonders to staging-service/settings.json")
-print("   Channel ID: 6b094f6c8541f09ecbbf44df")
+print("✅ Added aquaverse to staging-service/settings.json")
+print("   Channel ID: 6b0a844c8541f09ecbcfd0ac")
 print("   Total NICHES: {}".format(len(niches)))

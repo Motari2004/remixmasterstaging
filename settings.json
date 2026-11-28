@@ -599,6 +599,15 @@
       "buffer_channel_id": "6b094f6c8541f09ecbbf44df",
       "channel_link": "",
       "email": ""
+    },
+    "aquaverse": {
+      "label": "AquaVerse",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
+      "buffer_channel_id": "6b0a844c8541f09ecbcfd0ac",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -691,6 +700,9 @@
     ],
     "worldwonders": [
       "worldwonders"
+    ],
+    "aquaverse": [
+      "aquaverse"
     ]
   }
 }
