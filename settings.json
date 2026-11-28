@@ -608,6 +608,15 @@
       "buffer_channel_id": "6b0a844c8541f09ecbcfd0ac",
       "channel_link": "",
       "email": ""
+    },
+    "movieclips": {
+      "label": "Movie Clips",
+      "publisher": "buffer",
+      "platform": "facebook",
+      "buffer_api_key": "dm4WswE8Clc1_7iMW4rkm3CEWOwYqlaK7k3QBIr9RxR",
+      "buffer_channel_id": "6b0aa6848541f09ecbd12816",
+      "channel_link": "",
+      "email": ""
     }
   },
   "NEON_DATABASE_URL": "postgresql://neondb_owner:npg_tz5RNSrwo4cC@ep-curly-wildflower-b4gd5p85-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -703,6 +712,9 @@
     ],
     "aquaverse": [
       "aquaverse"
+    ],
+    "movieclips": [
+      "movieclips"
     ]
   }
 }
